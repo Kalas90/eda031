@@ -10,7 +10,6 @@ using namespace std;
 
 #define IN string("words.txt")
 
-using namespace std;
 
 Dictionary::Dictionary() {
     ifstream in(IN);
@@ -56,11 +55,20 @@ void Dictionary::add_trigram_suggestions(vector<Word>& suggestions, const string
         }
 
         // add words with size - 1 to suggestions.
-        const vector<Word>& smaller_size_words = words[word.size()-1];
-        for (Word smaller_size_word : smaller_size_words) {
-            suggestions.push_back(smaller_size_word);
+        if (word.size() > 1) {
+            const vector<Word>& smaller_size_words = words[word.size()-1];
+            for (Word smaller_size_word : smaller_size_words) {
+                suggestions.push_back(smaller_size_word);
+            }
         }
 
+        // add words with size + 1 to suggestions.
+        if (word.size() < max_size - 1) {
+            const vector<Word>& smaller_size_words = words[word.size() + 1];
+            for (Word smaller_size_word : smaller_size_words) {
+                suggestions.push_back(smaller_size_word);
+            }
+        }
         // remove words with bad trigram matches.
         vector<string> trigrams = get_trigrams(word);
         vector<Word> filtered_suggestions;
@@ -90,13 +98,59 @@ vector<string> Dictionary::get_trigrams(const string& word) const {
 }
 
 void Dictionary::rank_suggestions(vector<Word>& suggestions, const string& word) const {
+    // initialize distance matrix
+    int d [max_size + 1][max_size + 1];
+    for (unsigned int i = 0; i < max_size + 1; i++) {
+        d[i][0] = i;
+        d[0][i] = i;
+    }
 
+    // calculate Levenshtein distance for all suggestions
+
+    vector<pair<int, Word>> ranked_suggestions;
+    for (Word suggestion : suggestions) {
+        for (unsigned int j = 1; j < suggestion.get_word().size() + 1; j++) {
+            for (unsigned int i = 1; i < word.size() + 1; i++) {
+                int distance = min(d[i-1][j] + 1, d[i][j-1] + 1);
+                if (word[i-1] == suggestion.get_word()[j-1]) {
+                    distance = min(distance, d[i-1][j-1]);
+                } else {
+                    distance = min(distance, d[i-1][j-1] + 1);
+                }
+                d[i][j] = distance;
+            }
+        }
+
+        unsigned int cost = d[word.size()][suggestion.get_word().size()];
+        ranked_suggestions.push_back(make_pair(cost, suggestion));
+    }
+
+    sort(ranked_suggestions.begin(), ranked_suggestions.end());
+
+    vector<Word> sorted_ranked_suggestions;
+    for (pair<int, Word> pair : ranked_suggestions) {
+        sorted_ranked_suggestions.push_back(pair.second);
+    }
+
+    suggestions.swap(sorted_ranked_suggestions);
+
+}
+
+
+void Dictionary::trim_suggestions(vector<Word>& suggestions) const {
+    vector<Word> trimmed_suggestions;
+    for (unsigned int i = 0; i < min(suggestions.size(), number_of_suggestions); i++) {
+        trimmed_suggestions.push_back(suggestions[i]);
+    }
+
+    suggestions.swap(trimmed_suggestions);
 }
 
 vector<string> Dictionary::get_suggestions(const string& word) const {
 	vector<Word> suggestions;
     add_trigram_suggestions(suggestions, word);
-
+    rank_suggestions(suggestions, word);
+    trim_suggestions(suggestions);
 
     vector<string> suggestion_strings;
     for (Word suggestion : suggestions) {

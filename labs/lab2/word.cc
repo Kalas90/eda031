@@ -29,3 +29,8 @@ unsigned int Word::get_matches(const vector<string>& t) const {
 
     return nMatches;
 }
+
+bool Word::operator <(const Word& w) const {
+    return word < w.get_word();
+}
+

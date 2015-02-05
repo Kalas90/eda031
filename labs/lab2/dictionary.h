@@ -14,6 +14,7 @@ public:
 	std::vector<std::string> get_suggestions(const std::string& word) const;
 private:
     static const unsigned int max_size = 25;
+    static const std::string::size_type number_of_suggestions = 5;
     std::unordered_set<std::string> dict;
     std::vector<Word> words[max_size];
     std::vector<std::string> get_trigrams(const std::string& word) const;

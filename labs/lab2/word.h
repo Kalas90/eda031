@@ -15,6 +15,10 @@ public:
 	/* Returns how many of the trigrams in t that are present
 	 in this word's trigram vector */
 	unsigned int get_matches(const std::vector<std::string>& t) const;
+
+    /* compares string in two words */
+    bool operator <(const Word& w) const;
+
 private:
     std::string word;
     std::vector<std::string> trigrams;
