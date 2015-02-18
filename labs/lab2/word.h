@@ -8,6 +8,7 @@ class Word {
 public:
 	/* Creates a word w with the sorted trigrams t */
 	Word(const std::string& w, const std::vector<std::string>& t);
+    Word();
 
 	/* Returns the word */
 	std::string get_word() const;

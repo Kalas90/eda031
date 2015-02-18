@@ -138,12 +138,9 @@ void Dictionary::rank_suggestions(vector<Word>& suggestions, const string& word)
 
 
 void Dictionary::trim_suggestions(vector<Word>& suggestions) const {
-    vector<Word> trimmed_suggestions;
-    for (unsigned int i = 0; i < min(suggestions.size(), number_of_suggestions); i++) {
-        trimmed_suggestions.push_back(suggestions[i]);
+     if (suggestions.size() > 5) {
+        suggestions.resize(5);
     }
-
-    suggestions.swap(trimmed_suggestions);
 }
 
 vector<string> Dictionary::get_suggestions(const string& word) const {
