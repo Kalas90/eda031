@@ -11,6 +11,7 @@ class NewsgroupDatabase {
     NewsgroupDatabase(std::string filename);
     ~NewsgroupDatabase();
     std::vector<std::string> list_newsgroups();
+    bool remove_newsgroup(int id);
 
     protected:
     sqlite3 *db;
