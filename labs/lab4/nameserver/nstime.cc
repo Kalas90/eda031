@@ -8,6 +8,7 @@
 #include "umns.h"
 #include "hns.h"
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <string>
 #include <vector>
@@ -32,7 +33,7 @@ double measureTime(const NameServerInterface& ns,
 	if (nbrSearches <= 0) {
 		return 0;
 	}
-	
+
 	/*
 	 * First, measure the administration time for the time measurement
 	 * loop.
@@ -52,7 +53,7 @@ double measureTime(const NameServerInterface& ns,
 		}
 	}
 	auto elapsedTimeAdmin = high_resolution_clock::now() - startTime;
-	
+
 	/*
 	 * Then, the same loop but this time we really search in the
 	 * name server.
@@ -81,31 +82,31 @@ int main() {
 	 * The vector implementation.
 	 */
 	VNS vns;
-	
+
 	/*
 	 * The map implementations.
 	 */
 	MNS mns;
 	UMNS umns;
-	
+
 	/*
 	 * The hash table implementation. The size of the hash table is
 	 * a parameter to the constructor.
 	 */
 	HNS hns(17441);
-	
+
 	/*
 	 * data is a vector containing the name/address pairs. Used by the
 	 * measureTime() function.
 	 */
 	vector<dns_record> data;
-	
+
 	ifstream in("nameserverdata.txt");
 	if (!in) {
 		cerr << "Could not open data file (nameserverdata.txt)" << endl;
 		exit(1);
 	}
-	
+
 	/*
 	 * Read the input file, store in the data vector. At the same time,
 	 * insert the data into the name servers.
@@ -121,7 +122,7 @@ int main() {
 		hns.insert(name, nbr);
 	}
 	cout << " read " << data.size() << " words." << endl;
-	
+
 	/*
 	 * Read the number used to seed the random number generator. Use
 	 * any (preferably odd) number.
@@ -129,7 +130,7 @@ int main() {
 	cout << "Random seed: " << flush;
 	int seed;
 	cin >> seed;
-	
+
 	/*
 	 * Measure the average search times for the four implementations.
 	 * Use a small (1000) value for the number of searches in the
@@ -137,22 +138,23 @@ int main() {
 	 * implementations. What values that are reasonable depends on
 	 * your computer.
 	 */
+
 	cout << "Test vector. Number of searches: ";
 	int nbrSearches;
 	cin >> nbrSearches;
 	double avgTime = measureTime(vns, data, nbrSearches, seed);
 	cout << "Average search time (ms): " << avgTime << endl;
-	
+
 	cout << "Test map. Number of searches: ";
 	cin >> nbrSearches;
 	avgTime = measureTime(mns, data, nbrSearches, seed);
 	cout << "Average search time (ms): " << avgTime << endl;
-	
+
 	cout << "Test unordered map. Number of searches: ";
 	cin >> nbrSearches;
 	avgTime = measureTime(umns, data, nbrSearches, seed);
 	cout << "Average search time (ms): " << avgTime << endl;
-	
+
 	cout << "Test hash. Number of searches: ";
 	cin >> nbrSearches;
 	avgTime = measureTime(hns, data, nbrSearches, seed);

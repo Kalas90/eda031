@@ -21,7 +21,7 @@ int main() {
 	}
 	copy(bs.begin(), bs.end(), ostream_iterator<bool>(cout));
 	cout << endl;
-	
+
 	// Find the first five bits that are set, complement them, print
 	size_t cleared = 0;
 	auto it = bs.begin();
@@ -35,7 +35,7 @@ int main() {
 	}
 	copy(bs.begin(), bs.end(), ostream_iterator<bool>(cout));
 	cout << endl;
-	
+
 	// Count the number of set bits, print
 	cout << "Number of set bits: " << count(bs.begin(), bs.end(), true) << endl;
 }

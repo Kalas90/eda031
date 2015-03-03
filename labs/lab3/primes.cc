@@ -9,7 +9,7 @@ int main() {
 
     cout << small << endl;
 
-    string big = sieve(100000);
+    string big = sieve(1000000);
 
     cout << "Biggest: " << big.find_last_of('P') << endl;
 

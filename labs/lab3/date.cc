@@ -63,7 +63,7 @@ istream& operator >>(istream& stream, Date &d) {
     char delim1, delim2;
 
     ss >> year >> delim1 >> month >> delim2 >> day;
-    if (delim1 == '-' && delim2 == '-') {
+    if (delim1 == '-' && delim2 == '-' && month >= 1 && month <= 12 && day == Date::daysPerMonth[month]) {
         d.year = year;
         d.month = month;
         d.day = day;
