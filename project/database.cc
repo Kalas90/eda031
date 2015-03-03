@@ -43,7 +43,6 @@ vector<string> NewsgroupDatabase::list_newsgroups()
     char *error_msg = nullptr;
 
     int rc = sqlite3_exec(db, sql, read_newsgroups, &newsgroups, &error_msg);
-    error_msg = nullptr;
 
     if (rc != SQLITE_OK) {
         string error_str(error_msg);
