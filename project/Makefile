@@ -17,7 +17,7 @@ CXXFLAGS += -g
 #CPPFLAGS =  -stdlib=libc++
 #CXXFLAGS += -stdlib=libc++
 
-LDFLAGS = -lsqlite3
+LDLIBS = -lsqlite3
 
 PROGS = libclientserver.a ntest testdatabase
 
