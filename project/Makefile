@@ -17,7 +17,7 @@ CXXFLAGS += -g
 #CPPFLAGS =  -stdlib=libc++
 #CXXFLAGS += -stdlib=libc++
 
-PROGS = libclientserver.a client
+PROGS = libclientserver.a client example_server
 all: $(PROGS)
 
 # Create the library; ranlib is for Darwin (OS X) and maybe other systems.
@@ -27,6 +27,7 @@ libclientserver.a: connection.o server.o
 	ranlib libclientserver.a
 
 client: client.o newsclient.o connection.o
+example_server: example_server.o connection.o server.o
 
 # Phony targets
 .PHONY: all clean

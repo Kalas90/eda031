@@ -1,4 +1,3 @@
-/* myserver.cc: sample server program */
 #include "server.h"
 #include "connection.h"
 #include "connectionclosedexception.h"
@@ -35,7 +34,7 @@ void writeString(const shared_ptr<Connection>& conn, const string& s) {
 
 int main(int argc, char* argv[]){
 	if (argc != 2) {
-		cerr << "Usage: myserver port-number" << endl;
+		cerr << "Usage: example_server port-number" << endl;
 		exit(1);
 	}
 	
@@ -59,7 +58,8 @@ int main(int argc, char* argv[]){
 			try {
         string s;
         unsigned char c;
-        while (c = conn->read()) {
+        while (true) {
+          c = conn->read();
           if (c == Protocol::COM_END)
             break;
           else
