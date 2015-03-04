@@ -53,10 +53,14 @@ bool mngp::remove_newsgroup(unsigned int newsgroup_id) {
     return true;
 }
 
-// TODO: Fix newsgroup id not considered
 bool mngp::create_newsgroup(std::string name) {
-    news.push_back(Newsgroup(name));
-    return false;
+    auto it = std::find_if(news.begin(), news.end(),
+        [name](Newsgroup& g) { return g.get_name() == name; });
+    if (it == news.end()) {
+        news.push_back(Newsgroup(name));
+        return true;
+    } else
+        return false;
 }
 
 bool mngp::create_article(unsigned int newsgroup_id,
