@@ -4,35 +4,64 @@
 
 #include <string>
 #include <vector>
+#include <algorithm>
+#include <stdexcept>
 
-using mngp = MemoryNewsGroupProvider
+using mngp = MemoryNewsgroupProvider;
 
-virtual Article mngp::article(int newsgroup_id, int article_id) const override {
-    return Article(0, "", "", "");
+Newsgroup& mngp::newsgroup(unsigned int newsgroup_id) {
+    auto it = std::find_if(news.begin(), news.end(),
+            [newsgroup_id](Newsgroup g) {return g.get_id() == newsgroup_id;}
+            );
+    if (it == news.end())
+        throw std::invalid_argument("Newsgroup not found");
+    else
+        return *it;
 }
 
-virtual std::vector<NewsGroup> mngp::list_news_groups() const override {
-    return std::vector<NewsGroup>;
+Article mngp::article(unsigned int newsgroup_id, unsigned int article_id) const {
+    auto it = std::find_if(news.begin(), news.end(),
+            [newsgroup_id](Newsgroup g) {return g.get_id() == newsgroup_id;}
+            );
+
+    if (it == news.end())
+        throw std::invalid_argument("Article not found");
+    
+    return (*it).get_article(article_id); // Not yet implemented
 }
 
-virtual std::vector<Article> mngp::list_articles(int newsgroup_id) const override {
-    return std::vector<Article>
+std::vector<Newsgroup> mngp::list_news_groups() const {
+    return news;
 }
 
-virtual bool mngp::remove_article(int newsgroup_id, int article_id) override{
+std::vector<Article> mngp::list_articles(unsigned int newsgroup_id) const {
+    return newsgroup(newsgroup_id).get_articles();
+}
+
+// TODO: Fix return value
+bool mngp::remove_article(unsigned int newsgroup_id, unsigned int article_id) {
+    newsgroup(newsgroup_id).delete_article(article_id);
+    return true;
+}
+
+// TODO: Fix return value
+bool mngp::remove_newsgroup(unsigned int newsgroup_id) {
+    auto it = std::remove_if(news.begin(), news.end(),
+        [newsgroup_id](Newsgroup g) {return g.get_id() == newsgroup_id;}
+        );
+    news.erase(it);
+    return true;
+}
+
+// TODO: Fix newsgroup id not considered
+bool mngp::create_newsgroup(std::string name) {
+    news.push_back(Newsgroup(name));
     return false;
 }
 
-virtual bool mngp::remove_newsgroup(int newsgroup_id) override {
-    return false;
-}
-
-virtual bool mngp::create_newsgroup(std::String name) override {
-    return false;
-}
-
-virtual bool mngp::create_article(int newsgroup_id,
-            std::String title, std::String author, std::String text) override {
-    return false;
+bool mngp::create_article(unsigned int newsgroup_id,
+            std::string title, std::string author, std::string text) {
+    newsgroup(newsgroup_id).create_article(author, title, text);
+    return true;
 }
 

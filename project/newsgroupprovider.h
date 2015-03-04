@@ -5,14 +5,14 @@
 #include <string>
 
 // Interface class, pure virtual
-class NewGroupProvider {
+class NewsgroupProvider {
 public:
-    virtual Article article(int newsgroup_id, int article_id) const = 0;
-    virtual std::vector<NewsGroup> list_news_groups() const = 0;
-    virtual std::vector<Article> list_articles(int newsgroup_id) const = 0;
-    virtual bool remove_article(int newsgroup_id, int article_id) = 0;
-    virtual bool remove_newsgroup(int newsgroup_id) = 0;
-    virtual bool create_newsgroup(std::String name) = 0;
-    virtual bool create_article(int newsgroup_id,
-            std::String title, std::String author, std::String text) = 0;
+    virtual Article article(unsigned int newsgroup_id, unsigned int article_id) const = 0;
+    virtual std::vector<Newsgroup> list_news_groups() const = 0;
+    virtual std::vector<Article> list_articles(unsigned int newsgroup_id) const = 0;
+    virtual bool remove_article(unsigned int newsgroup_id, unsigned int article_id) = 0;
+    virtual bool remove_newsgroup(unsigned int newsgroup_id) = 0;
+    virtual bool create_newsgroup(std::string name) = 0;
+    virtual bool create_article(unsigned int newsgroup_id,
+            std::string title, std::string author, std::string text) = 0;
 };
