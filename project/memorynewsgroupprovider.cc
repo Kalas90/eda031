@@ -34,7 +34,7 @@ std::vector<Newsgroup> mngp::list_news_groups() const {
     return news;
 }
 
-std::vector<Article> mngp::list_articles(unsigned int newsgroup_id) const {
+std::vector<Article> mngp::list_articles(unsigned int newsgroup_id) {
     return newsgroup(newsgroup_id).get_articles();
 }
 
