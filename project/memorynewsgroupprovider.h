@@ -1,4 +1,9 @@
+#ifndef MEMORYNEWSGROUPPROVIDER_H
+#define MEMORYNEWSGROUPPROVIDER_H
+
 #include "newsgroupprovider.h"
+#include "newsgroup.h"
+#include "article.h"
 
 class MemoryNewsgroupProvider : public NewsgroupProvider {
 public:
@@ -14,3 +19,5 @@ private:
     std::vector<Newsgroup> news;
     Newsgroup& newsgroup(unsigned int newsgroup_id);
 };
+
+#endif

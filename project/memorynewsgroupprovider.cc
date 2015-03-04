@@ -11,7 +11,7 @@ using mngp = MemoryNewsgroupProvider;
 
 Newsgroup& mngp::newsgroup(unsigned int newsgroup_id) {
     auto it = std::find_if(news.begin(), news.end(),
-            [newsgroup_id](Newsgroup g) {return g.get_id() == newsgroup_id;}
+            [&newsgroup_id](Newsgroup& g) {return g.get_id() == newsgroup_id;}
             );
     if (it == news.end())
         throw std::invalid_argument("Newsgroup not found");

@@ -17,6 +17,8 @@ Newsgroup::Newsgroup(string name) : name(name) {
 
 unsigned int Newsgroup::get_id() const { return id; }
 
+string Newsgroup::get_name() const {return name; }
+
 
 void Newsgroup::list_articles(ostream& out) const {
     out << "Id| Author | Title" << endl;

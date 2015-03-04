@@ -1,4 +1,4 @@
-#
+
 # Makefile to make the file libclientserver.a, containing
 # connection.o and server.o
 #
@@ -19,7 +19,7 @@ CXXFLAGS += -g
 
 LDLIBS = -lsqlite3
 
-PROGS = libclientserver.a ntest testdatabase groupprovidertest
+PROGS = libclientserver.a ntest testdatabase test_memorynewsgroupprovider test_newsserver
 
 all: $(PROGS)
 
@@ -32,7 +32,8 @@ libclientserver.a: connection.o server.o
 	ar rv libclientserver.a  connection.o server.o
 	ranlib libclientserver.a
 ntest: ntest.o article.o newsgroup.o
-groupprovidertest: groupprovidertest.o article.o newsgroup.o memorynewsgroupprovider.o
+test_memorynewsgroupprovider: test_memorynewsgroupprovider.o memorynewsgroupprovider.o article.o newsgroup.o
+test_newsserver: test_newsserver.o connection.o newsserver.o article.o newsgroup.o memorynewsgroupprovider.o server.o
 
 # Phony targets
 .PHONY: all clean

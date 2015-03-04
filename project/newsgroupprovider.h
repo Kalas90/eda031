@@ -1,3 +1,6 @@
+#ifndef NEWSGROUPPROVIDER_H
+#define NEWSGROUPPROVIDER_H
+
 #include "article.h"
 #include "newsgroup.h"
 
@@ -16,3 +19,5 @@ public:
     virtual bool create_article(unsigned int newsgroup_id,
             std::string title, std::string author, std::string text) = 0;
 };
+
+#endif
