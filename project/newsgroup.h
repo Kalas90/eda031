@@ -15,7 +15,6 @@ public:
     unsigned int get_id() const;
 
     Article get_article(unsigned int) const;
-    void list_articles(std::ostream&) const;
     std::vector<Article> get_articles() const;
     void create_article(std::string, std::string, std::string);
     bool delete_article(unsigned int);

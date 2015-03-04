@@ -19,7 +19,7 @@ CXXFLAGS += -g
 
 LDLIBS = -lsqlite3
 
-PROGS = libclientserver.a ntest testdatabase groupprovidertest
+PROGS = libclientserver.a testdatabase groupprovidertest
 
 all: $(PROGS)
 
@@ -31,7 +31,6 @@ testdatabase: testdatabase.o database.o
 libclientserver.a: connection.o server.o
 	ar rv libclientserver.a  connection.o server.o
 	ranlib libclientserver.a
-ntest: ntest.o article.o newsgroup.o
 groupprovidertest: groupprovidertest.o article.o newsgroup.o memorynewsgroupprovider.o
 
 # Phony targets

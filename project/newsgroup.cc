@@ -17,14 +17,6 @@ Newsgroup::Newsgroup(string name) : name(name) {
 
 unsigned int Newsgroup::get_id() const { return id; }
 
-
-void Newsgroup::list_articles(ostream& out) const {
-    out << "Id| Author | Title" << endl;
-    for (auto a : articles) {
-        out << a.get_id() << " | " << a.get_author() << " | " << a.get_title() << endl;
-    }
-}
-
 Article Newsgroup::get_article(unsigned int id) const {
     auto it = find_if(articles.begin(), articles.end(), [&id](const Article& a){return a.get_id() == id;});
     if (it != articles.end()) {
