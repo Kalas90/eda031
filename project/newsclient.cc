@@ -1,6 +1,9 @@
 #include "newsclient.h"
 #include "protocol.h"
+#include "malformattedinputexception.h"
 #include <iostream>
+#include <stdexcept>
+#include <utility>
 
 void NewsClient::print_help() const {
   using namespace std;
@@ -30,43 +33,56 @@ size_t find_citation_mark(const std::string& s, size_t start) {
   return pos;
 }
 
+std::pair<std::string, bool> read_word(const std::string s, size_t start) {
+  size_t open = find_citation_mark(s, start);
+  size_t close = find_citation_mark(s, open+1);
+
+  std::string name;
+  if (open == std::string::npos && close == std::string::npos) {
+    // Not a multiword, return what's between start and (the first space token || end of line)
+    close = s.find(" ", start+1);
+    if (close == std::string::npos)
+      return std::make_pair(s.substr(start, s.size() - start), false);
+    else
+      return std::make_pair(s.substr(start, close - start), false);
+  } else if (open == start && close != std::string::npos) {
+    // A multiword, return what's between the citation marks
+    return std::make_pair(s.substr(open + 1, close - open - 1), true);
+  } else {
+    // Malformatted s
+    throw MalformattedInputException();
+  }
+}
+
 void bad_req() {
   std::cerr << "Malformatted request." << std::endl;
 }
 
 void NewsClient::parse_and_execute_command(const std::string& input) {
-  if (input == "exit") { 
-    exit();
-  } else if (input == "list newsgroups") { 
-    send_list_newsgroups();
-  } else if (input.find("create newsgroup ") == 0) {
-    auto first = std::string("create newsgroup ").size();
-    auto last = input.size()-1;
-
-    size_t open = find_citation_mark(input, first);
-    size_t close = find_citation_mark(input, open+1);
-
-    bool correct = true;
-    std::string name;
-    if (open == std::string::npos && close == std::string::npos) {
-      name = input.substr(first, input.size() - first);
-    } else if (open == first && close == last) {
-      name = input.substr(first+1, input.size() - (first+1) - 1);
+  try {
+    if (input == "exit") { 
+      exit();
+    } else if (input.find("list newsgroups") == 0) {
+      send_list_newsgroups();
+    } else if (input.find("create newsgroup ") == 0) {
+      auto word = read_word(input, 17);
+      if (word.first.size() < 1) 
+        throw new MalformattedInputException();
+      else
+        send_create_newsgroup(word.first);
+    } else if (input.find("delete newsgroup ") == 0) {
+      try {
+        int ng_id = std::stoi(read_word(input, 17).first);
+        send_delete_newsgroup(ng_id);
+      } catch(std::exception& e) {
+        throw MalformattedInputException();
+      }
     } else {
-      correct = false;
-    }
-
-    if (name.size() < 1) 
-      correct = false;
-
-    if (correct)
-      send_create_newsgroup(name);
-    else
       bad_req();
-  } else if (input.find("delete newsgroup ") == 0) {
-        
-  } else {
+    }
+  } catch(MalformattedInputException e) {
     bad_req();
+    return;
   }
 }
 
