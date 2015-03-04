@@ -42,11 +42,13 @@ void Newsgroup::create_article(string author, string title, string text) {
     articles.push_back(Article(author, title, text));
 }
 
-void Newsgroup::delete_article(unsigned int id) {
+bool Newsgroup::delete_article(unsigned int id) {
     auto it = find_if(articles.begin(), articles.end(), [&id](const Article& a){return a.get_id() == id;});
     if (it != articles.end()) {
         articles.erase(it);
+        return true;
     } else {
         throw invalid_argument("Article ID does not exist!");
+        return false;
     }
 }
