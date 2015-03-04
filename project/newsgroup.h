@@ -18,7 +18,7 @@ public:
     void list_articles(std::ostream&) const;
     std::vector<Article> get_articles() const;
     void create_article(std::string, std::string, std::string);
-    void delete_article(unsigned int);
+    bool delete_article(unsigned int);
 
 
 private:
