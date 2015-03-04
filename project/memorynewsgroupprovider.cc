@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <stdexcept>
 
 using mngp = MemoryNewsgroupProvider;
 
@@ -13,7 +14,7 @@ Newsgroup& mngp::newsgroup(unsigned int newsgroup_id) {
             [newsgroup_id](Newsgroup g) {return g.get_id() == newsgroup_id;}
             );
     if (it == news.end())
-        throw std::bad_function_call();
+        throw std::invalid_argument("Newsgroup not found");
     else
         return *it;
 }
@@ -24,28 +25,35 @@ Article mngp::article(unsigned int newsgroup_id, unsigned int article_id) const 
             );
 
     if (it == news.end())
-        return Article("", "", "");
+        throw std::invalid_argument("Article not found");
     
-    return Article("","","");
-    //return (*it).get_article(article_id); // Not yet implemented
+    return (*it).get_article(article_id); // Not yet implemented
 }
 
 std::vector<Newsgroup> mngp::list_news_groups() const {
-    return std::vector<Newsgroup>();
+    return news;
 }
 
 std::vector<Article> mngp::list_articles(unsigned int newsgroup_id) const {
-    return std::vector<Article>();
+    return newsgroup(newsgroup_id).get_articles();
 }
 
+// TODO: Fix return value
 bool mngp::remove_article(unsigned int newsgroup_id, unsigned int article_id) {
-    return false;
+    newsgroup(newsgroup_id).delete_article(article_id);
+    return true;
 }
 
+// TODO: Fix return value
 bool mngp::remove_newsgroup(unsigned int newsgroup_id) {
-    return false;
+    auto it = std::remove_if(news.begin(), news.end(),
+        [newsgroup_id](Newsgroup g) {return g.get_id() == newsgroup_id;}
+        );
+    news.erase(it);
+    return true;
 }
 
+// TODO: Fix newsgroup id not considered
 bool mngp::create_newsgroup(std::string name) {
     news.push_back(Newsgroup(name));
     return false;
