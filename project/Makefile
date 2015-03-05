@@ -17,9 +17,10 @@ CXXFLAGS += -g
 #CPPFLAGS =  -stdlib=libc++
 #CXXFLAGS += -stdlib=libc++
 
-LDLIBS = -lsqlite3
+#LDLIBS = -lsqlite3
 
-PROGS = libclientserver.a testdatabase test_memorynewsgroupprovider test_newsserver
+#PROGS = libclientserver.a testdatabase test_memorynewsgroupprovider test_newsserver
+PROGS = libclientserver.a test_memorynewsgroupprovider test_newsserver
 
 all: $(PROGS)
 

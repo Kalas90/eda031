@@ -1,4 +1,5 @@
 #include "newsgroup.h"
+#include "nosuchelementexception.h"
 #include "article.h"
 #include <string>
 #include <vector>
@@ -24,7 +25,7 @@ Article Newsgroup::get_article(unsigned int id) const {
     if (it != articles.end()) {
         return *it;
     } else {
-        throw invalid_argument("Article ID does not exist!");
+        throw NoSuchElementException(); //invalid_argument("Article ID does not exist!");
     }
 }
 
@@ -32,8 +33,15 @@ vector<Article> Newsgroup::get_articles() const {
     return articles;
 }
 
-void Newsgroup::create_article(string author, string title, string text) {
-    articles.push_back(Article(author, title, text));
+bool Newsgroup::create_article(string author, string title, string text) {
+    auto it = find_if(articles.begin(), articles.end(),
+            [title](Article& a){ return a.get_title() == title; } );
+    if (it != articles.end()) {
+        articles.push_back(Article(author, title, text));
+        return true;
+    } else {
+        return false;
+    }
 }
 
 bool Newsgroup::delete_article(unsigned int id) {
@@ -42,7 +50,6 @@ bool Newsgroup::delete_article(unsigned int id) {
         articles.erase(it);
         return true;
     } else {
-        throw invalid_argument("Article ID does not exist!");
         return false;
     }
 }

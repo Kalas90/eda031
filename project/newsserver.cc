@@ -5,6 +5,7 @@
 #include "newsgroupprovider.h"
 #include "protocol.h"
 #include "connectionclosedexception.h"
+#include "protocolviolationexception.h"
 
 #include <memory>
 
@@ -40,7 +41,7 @@ std::string NewsServer::read_string(const std::shared_ptr<Connection>& conn, int
 int NewsServer::read_num_p(const std::shared_ptr<Connection>& conn) {
 	unsigned char par_num = conn->read();
 	if (par_num != Protocol::PAR_NUM)
-		throw ConnectionClosedException();  // Need better exception
+		throw ProtocolViolationException();
 
 	return read_number(conn);
 }
@@ -48,7 +49,7 @@ int NewsServer::read_num_p(const std::shared_ptr<Connection>& conn) {
 std::string NewsServer::read_string_p(const std::shared_ptr<Connection>& conn) {
 	unsigned char par_string = conn->read();
 	if (par_string != Protocol::PAR_STRING)
-		throw ConnectionClosedException();	// Need better exception
+		throw ProtocolViolationException();
 
 	int size = read_number(conn);
 	return read_string(conn, size);
@@ -76,7 +77,7 @@ void NewsServer::write_number(const std::shared_ptr<Connection>& conn, int value
 
 void NewsServer::write_string_p(const std::shared_ptr<Connection>& conn, const std::string& s) {
 	conn->write(Protocol::PAR_STRING);
-	write_string(conn, a.get_title());
+	write_string(conn, s);
 }
 
 void NewsServer::write_num_p(const std::shared_ptr<Connection>& conn, int value) {
@@ -113,14 +114,16 @@ void NewsServer::listen() {
 						ans_get_art(conn);
 						break;
 					default:
-						throw ConnectionClosedException(); // Should we send something to client? Syntax error?
+						throw ProtocolViolationException(); 
 						break;
 				}
 			} catch (ConnectionClosedException&) {
 				server.deregisterConnection(conn);
 				std::cout << "Client closed connection" << std::endl;
-			}
-			// We could catch some other ProtocolViolationException
+			} catch (ProtocolViolationException&) {
+                server.deregisterConnection(conn);
+                std::cout << "Client violated the protocol. Connection closed" << std::endl;
+            }
 		} else {
 			conn = std::make_shared<Connection>();
 			server.registerConnection(conn);
@@ -136,35 +139,24 @@ void NewsServer::ans_success(bool success, const std::shared_ptr<Connection>& co
 		conn->write(Protocol::ANS_NAK);
 		conn->write(Protocol::ERR_NG_ALREADY_EXISTS);
 	}
-	
 }
 
 void NewsServer::ans_list_ng(const std::shared_ptr<Connection>& conn) {
 	std::vector<Newsgroup> list = ngp.list_news_groups();
 
 	conn->write(Protocol::ANS_LIST_NG);
-	conn->write(Protocol::PAR_NUM);
-	write_number(conn, list.size());
+    write_num_p(conn, list.size());
 
 	for (auto g : list) {
-		conn->write(Protocol::PAR_NUM);
-		write_number(conn, g.get_id());
-		conn->write(Protocol::PAR_STRING);
-		write_string(conn, g.get_name());
+        write_num_p(conn, g.get_id());
+        write_string_p(conn, g.get_name());
 	}
 
 	conn->write(Protocol::ANS_END);
 }
 
 bool NewsServer::create_ng(const std::shared_ptr<Connection>& conn) {
-	unsigned char par_string = conn->read();
-	if (par_string != Protocol::PAR_STRING)
-		throw ConnectionClosedException();
-
-	int size = read_number(conn);
-	std::string group_name = read_string(conn, size);
-
-	return (ngp.create_newsgroup(group_name));
+	return (ngp.create_newsgroup(read_string_p(conn)));
 }
 
 bool NewsServer::delete_ng(const std::shared_ptr<Connection>& conn) {
@@ -173,8 +165,7 @@ bool NewsServer::delete_ng(const std::shared_ptr<Connection>& conn) {
 
 void NewsServer::ans_list_art(const std::shared_ptr<Connection>& conn) {
 	int newsgroup_id = read_num_p(conn);
-	vector<Article> list = ngp.list_articles(newsgroup_id);  // Assume that newsgroup_id exist in ngp. Need fix.
-
+    std::vector<Article> list = ngp.list_articles(newsgroup_id);  // Assume that newsgroup_id exist in ngp. Need fix.
 	conn->write(Protocol::ANS_LIST_ART);
 
 	// Case newsgroup exist
@@ -190,7 +181,6 @@ void NewsServer::ans_list_art(const std::shared_ptr<Connection>& conn) {
 }
 
 bool NewsServer::create_art(const std::shared_ptr<Connection>& conn) {
-	int newsgroup_id = read_num_p(conn);
 	return ngp.create_article(read_num_p(conn), read_string_p(conn), read_string_p(conn), read_string_p(conn));
 }
 
@@ -199,5 +189,15 @@ bool NewsServer::delete_art(const std::shared_ptr<Connection>& conn) {
 }
 
 void NewsServer::ans_get_art(const std::shared_ptr<Connection>& conn) {
+    conn->write(Protocol::ANS_GET_ART);
+    
+    Article a = ngp.article(read_num_p(conn), read_num_p(conn));
 
+    // Case article exist
+    conn->write(Protocol::ANS_ACK);
+    write_string_p(conn, a.get_title());
+    write_string_p(conn, a.get_author());
+    write_string_p(conn, a.get_text());
+
+    conn->write(Protocol::ANS_END);
 }
