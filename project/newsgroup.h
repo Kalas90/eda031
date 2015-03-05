@@ -10,12 +10,14 @@ class Newsgroup {
 public:
 
     Newsgroup(std::string);
+    Newsgroup(std::string, unsigned);
 
     std::string get_name() const;
     unsigned int get_id() const;
 
     Article get_article(unsigned int) const;
     std::vector<Article> get_articles() const;
+    void list_articles(std::ostream&) const;
     void create_article(std::string, std::string, std::string);
     bool delete_article(unsigned int);
 

@@ -6,19 +6,29 @@
 
 #include <sqlite3.h>
 
-class NewsgroupDatabase {
-    public:
+#include "newsgroupprovider.h"
+#include "newsgroup.h"
+#include "article.h"
+
+class NewsgroupDatabase : public NewsgroupProvider {
+public:
     NewsgroupDatabase(std::string filename);
     ~NewsgroupDatabase();
-    std::vector<std::string> list_newsgroups();
-    bool remove_newsgroup(int id);
 
-    protected:
+    virtual Article article(unsigned int newgroup_id, unsigned int article_id) const override;
+    virtual std::vector<Newsgroup> list_news_groups() const override;
+    virtual std::vector<Article> list_articles(unsigned int newsgroup_id) override;
+    virtual bool remove_article(unsigned int newsgroup_id, unsigned int article_id) override;
+    virtual bool remove_newsgroup(unsigned int newsgroup_id) override;
+    virtual bool create_newsgroup(std::string name) override;
+    virtual bool create_article(unsigned int newsgroup_id,
+            std::string title, std::string author, std::string text) override;
+protected:
     sqlite3 *db;
 };
 
 class DatabaseError : public std::runtime_error {
-    public:
+public:
     DatabaseError(std::string message) : std::runtime_error(message) {}
 };
 

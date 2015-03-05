@@ -15,6 +15,10 @@ Newsgroup::Newsgroup(string name) : name(name) {
     id = ++count;
 }
 
+Newsgroup::Newsgroup(string name, unsigned id) : id(id), name(name) {
+    count++;
+}
+
 unsigned int Newsgroup::get_id() const { return id; }
 
 string Newsgroup::get_name() const {return name; }
