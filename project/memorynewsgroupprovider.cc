@@ -14,7 +14,7 @@ Newsgroup& mngp::newsgroup(unsigned int newsgroup_id) {
             [&newsgroup_id](Newsgroup& g) {return g.get_id() == newsgroup_id;}
             );
     if (it == news.end())
-        throw std::invalid_argument("Newsgroup not found");
+        throw std::invalid_argument("Newsgroup not found");  // Fix better exception
     else
         return *it;
 }

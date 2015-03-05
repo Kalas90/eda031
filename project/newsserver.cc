@@ -29,7 +29,7 @@ int NewsServer::read_number(const std::shared_ptr<Connection>& conn) {
 /*
  * Read a string from the server.
  */
-std::string read_string(const std::shared_ptr<Connection>& conn, int size) {
+std::string NewsServer::read_string(const std::shared_ptr<Connection>& conn, int size) {
 	std::string s;
 	for (int i = 0; i<size; ++i) {
 		s += conn->read();
@@ -85,7 +85,7 @@ void NewsServer::listen() {
 					case Protocol::COM_GET_ART:
 						ans_get_art(conn);
 						break;
-					case default:
+					default:
 						throw ConnectionClosedException(); // Should we send something to client? Syntax error?
 						break;
 				}
@@ -93,6 +93,7 @@ void NewsServer::listen() {
 				server.deregisterConnection(conn);
 				std::cout << "Client closed connection" << std::endl;
 			}
+			// We could catch some other ProtocolViolationException
 		} else {
 			conn = std::make_shared<Connection>();
 			server.registerConnection(conn);
@@ -140,30 +141,38 @@ bool NewsServer::create_ng(const std::shared_ptr<Connection>& conn) {
 }
 
 bool NewsServer::delete_ng(const std::shared_ptr<Connection>& conn) {
-	return false;
+	unsigned char par_num = conn->read();
+	if (par_num != Protocol::PAR_NUM)
+		throw ConnectionClosedException();
+
+	int newsgroup_id = read_number(conn);
+
+	return ngp.remove_newsgroup(newsgroup_id);
 }
 
 void NewsServer::ans_list_art(const std::shared_ptr<Connection>& conn) {
-	// Read newsgroup number
+	unsigned char par_num = conn->read();
+	if (par_num != Protocol::PAR_NUM)
+		throw ConnectionClosedException();
 
-	// Fetch list
+	int newsgroup_id = read_number(conn);
+	vector<Article> list = ngp.list_articles(newsgroup_id);  // Assume that newsgroup_id exist in ngp. Need fix.
 
-	// Write to connection
+	conn->write(Protocol::ANS_LIST_ART);
 
-/*
-	conn->write(Protocol::ANS_LIST_NG);
+	// Case newsgroup exist
+	conn->write(Protocol::ANS_ACK);
 	conn->write(Protocol::PAR_NUM);
 	write_number(conn, list.size());
 
-	for (auto g : list) {
+	for (auto a : list) {
 		conn->write(Protocol::PAR_NUM);
-		write_number(conn, g.get_id());
+		write_number(conn, a.get_id());
 		conn->write(Protocol::PAR_STRING);
-		write_string(conn, g.get_name());
+		write_string(conn, a.get_title());
 	}
 
 	conn->write(Protocol::ANS_END);
-	*/
 }
 
 bool NewsServer::create_art(const std::shared_ptr<Connection>& conn) {

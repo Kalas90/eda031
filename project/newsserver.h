@@ -17,6 +17,7 @@ private:
 	NewsgroupProvider& ngp;
 	Server server;
 	int read_number(const std::shared_ptr<Connection>& conn);
+	std::string read_string(const std::shared_ptr<Connection>& conn, int size);
 	void write_string(const std::shared_ptr<Connection>& conn, const std::string& s);
 	void write_number(const std::shared_ptr<Connection>& conn, int value);
 	bool create_ng(const std::shared_ptr<Connection>& conn);
