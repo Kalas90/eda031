@@ -1,10 +1,152 @@
 #include "newsclient.h"
 #include "protocol.h"
 #include "malformattedinputexception.h"
+#include "malformattedresponseexception.h"
 #include <iostream>
 #include <stdexcept>
 #include <utility>
 
+void NewsClient::receive() {
+  char ch;
+  while ((ch = conn.read()) != Protocol::ANS_END) {
+    response += ch;
+  }
+}
+
+void bad_resp() {
+  std::cout << "Bad response!" << std::endl;
+}
+
+void NewsClient::reset_response_pointer() {
+  resp_p = 0;
+}
+
+int NewsClient::read_num() {
+	unsigned char byte1 = response[resp_p++];
+	unsigned char byte2 = response[resp_p++];
+	unsigned char byte3 = response[resp_p++];
+	unsigned char byte4 = response[resp_p++];
+	return (byte1 << 24) | (byte2 << 16) | (byte3 << 8) | byte4;
+}
+
+char NewsClient::read_byte() {
+  return response[resp_p++];
+}
+
+int NewsClient::read_num_p() {
+  if (read_byte() == Protocol::PAR_NUM)
+    return read_num();
+  else
+    throw MalformattedResponseException();
+}
+
+std::string NewsClient::read_string_p() {
+  if (read_byte() == Protocol::PAR_STRING) {
+    int size = read_num();
+
+    std::string s;
+    for (int i = 0; i < size; ++i) {
+      s += read_byte();
+    }
+
+    return s;
+  } else {
+    throw MalformattedResponseException();
+  }
+}
+ 
+
+void NewsClient::print_response() {
+  reset_response_pointer();
+
+  switch (read_byte()) {
+    case Protocol::ANS_LIST_NG:
+      print_list_newsgroups();
+      break;
+    case Protocol::ANS_CREATE_NG:
+      print_create_newsgroup();
+      break;
+    case Protocol::ANS_DELETE_NG:
+      print_delete_newsgroup();
+      break;
+    case Protocol::ANS_LIST_ART:
+      print_list_articles();
+      break;
+    case Protocol::ANS_CREATE_ART:
+      print_create_article();
+      break;
+    case Protocol::ANS_DELETE_ART:
+      print_delete_article();
+      break;
+    case Protocol::ANS_GET_ART:
+      print_get_article();
+      break;
+    default:
+      bad_resp();
+      return;
+  }
+}
+
+void NewsClient::print_list_newsgroups() {
+  int n_newsgroups = read_num_p();
+  for (int i = 0; i < n_newsgroups; ++i)
+    os << read_num_p() << ". " << read_string_p() << std::endl;
+}
+
+void NewsClient::print_create_newsgroup() {
+  if (read_byte() == Protocol::ANS_ACK)
+    os << "Successfully created newsgroup!" << std::endl;
+  else
+    os << "Failed to create newsgroup: a newsgroup with that name already exists." << std::endl;
+}
+
+void NewsClient::print_delete_newsgroup() {
+  if (read_byte() == Protocol::ANS_ACK)
+    os << "Successfully deleted newsgroup!" << std::endl;
+  else
+    os << "Failed to delete newsgroup: no newsgroup with that name exists." << std::endl;
+}
+
+void NewsClient::print_list_articles() {
+  if (read_byte() == Protocol::ANS_ACK) {
+    int n_articles = read_num_p();
+    for (int i = 0; i < n_articles; ++i)
+      os << read_num_p() << ". " << read_string_p() << std::endl;
+  } else {
+    os << "The selected newsgroup does not exist." << std::endl;
+  }
+}
+
+void NewsClient::print_delete_article() {
+  if (read_byte() == Protocol::ANS_ACK) {
+    os << "Successfully deleted article!" << std::endl;
+  } else {
+    if (read_byte() == Protocol::ERR_NG_DOES_NOT_EXIST)
+      os << "Failed to delete article: the selected newsgroup does not exist." << std::endl;
+    else
+      os << "Failed to delete article: the article does not exist." << std::endl;
+  }
+}
+
+void NewsClient::print_create_article() {
+  if (read_byte() == Protocol::ANS_ACK)
+    os << "Successfully created article!" << std::endl;
+  else
+    os << "Failed to create article: the selected newsgroup does not exist." << std::endl;
+}
+
+void NewsClient::print_get_article() {
+  if (read_byte() == Protocol::ANS_ACK) {
+    os << "Title:  " << read_string_p() << std::endl;
+    os << "Author: " << read_string_p() << std::endl;
+    os << "Text:   " << read_string_p() << std::endl;
+  } else {
+    if (read_byte() == Protocol::ERR_NG_DOES_NOT_EXIST)
+      os << "Failed to delete article: the selected newsgroup does not exist." << std::endl;
+    else
+      os << "Failed to delete article: the article does not exist." << std::endl;
+  }
+}
 
 size_t find_citation_mark(const std::string& s, size_t start) {
   size_t pos = s.find("\"", start);
@@ -227,10 +369,6 @@ void NewsClient::send_get_article(const int ng_id, const int art_id) const {
   write_int(art_id);
   conn.write(Protocol::COM_END);
 }
-
-void NewsClient::receive() {}
-
-void NewsClient::print_response() const {}
 
 bool NewsClient::wait_for_response() const {
   return active;
