@@ -17,13 +17,16 @@ CXXFLAGS += -g
 #CPPFLAGS =  -stdlib=libc++
 #CXXFLAGS += -stdlib=libc++
 
-LDLIBS = -lsqlite3
+LDLIBS = -lpthread -ldl
 
 PROGS = libclientserver.a testdatabase test_memorynewsgroupprovider test_newsserver
 
 all: $(PROGS)
 
-testdatabase: testdatabase.o database.o newsgroup.o article.o
+testdatabase: testdatabase.o database.o newsgroup.o article.o sqlite3.o
+
+sqlite3.o: sqlite3.c
+	gcc -O2 -c sqlite3.c
 
 # Create the library; ranlib is for Darwin (OS X) and maybe other systems.
 # Doesn't seem to do any damage on other systems.

@@ -4,8 +4,7 @@
 #include <stdexcept>
 #include <vector>
 
-#include <sqlite3.h>
-
+#include "sqlite3.h"
 #include "newsgroupprovider.h"
 #include "newsgroup.h"
 #include "article.h"
