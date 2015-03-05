@@ -33,7 +33,11 @@ size_t find_citation_mark(const std::string& s, size_t start) {
   return pos;
 }
 
-std::pair<std::string, bool> read_word(const std::string s, size_t start) {
+/*
+ * Read a word from a string. If encapsulated in citation marks, return the 
+ * encapsulated content. Also returns the start position of the next word.
+ */
+std::pair<std::string, size_t> read_word(const std::string s, size_t start) {
   size_t open = find_citation_mark(s, start);
   size_t close = find_citation_mark(s, open+1);
 
@@ -42,14 +46,13 @@ std::pair<std::string, bool> read_word(const std::string s, size_t start) {
     // Not a multiword, return what's between start and (the first space token || end of line)
     close = s.find(" ", start+1);
     if (close == std::string::npos)
-      return std::make_pair(s.substr(start, s.size() - start), false);
+      return std::make_pair(s.substr(start, s.size() - start), s.size());
     else
-      return std::make_pair(s.substr(start, close - start), false);
+      return std::make_pair(s.substr(start, close - start), close + 1);
   } else if (open == start && close != std::string::npos) {
     // A multiword, return what's between the citation marks
-    return std::make_pair(s.substr(open + 1, close - open - 1), true);
+    return std::make_pair(s.substr(open + 1, close - open - 1), close + 2);
   } else {
-    // Malformatted s
     throw MalformattedInputException();
   }
 }
@@ -66,19 +69,26 @@ void NewsClient::parse_and_execute_command(const std::string& input) {
       send_list_newsgroups();
     } else if (input.find("create newsgroup ") == 0) {
       auto word = read_word(input, 17);
+
       if (word.first.size() < 1) 
-        throw new MalformattedInputException();
+        throw MalformattedInputException();
       else
         send_create_newsgroup(word.first);
+
     } else if (input.find("delete newsgroup ") == 0) {
+      auto word = read_word(input, 17);
+
+      int ng_id;
       try {
-        int ng_id = std::stoi(read_word(input, 17).first);
-        send_delete_newsgroup(ng_id);
+        ng_id = std::stoi(word.first);
       } catch(std::exception& e) {
         throw MalformattedInputException();
       }
+      
+      send_delete_newsgroup(ng_id);
+    
     } else {
-      bad_req();
+      throw MalformattedInputException();
     }
   } catch(MalformattedInputException e) {
     bad_req();
