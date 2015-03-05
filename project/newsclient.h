@@ -31,11 +31,11 @@ class NewsClient {
     void exit();
 
     bool active = true;
-    const std::string client = "news>";
     std::ostream& os;
     std::string request;
     std::string response;
     const Connection& conn;
+    int selected_newsgroup = -1;
 };
 
 #endif
