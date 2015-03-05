@@ -6,6 +6,8 @@
 #include "protocol.h"
 #include "connectionclosedexception.h"
 #include "protocolviolationexception.h"
+#include "missingnewsgroupexception.h"
+#include "missingarticleexception.h"
 
 #include <memory>
 
@@ -165,19 +167,29 @@ bool NewsServer::delete_ng(const std::shared_ptr<Connection>& conn) {
 
 void NewsServer::ans_list_art(const std::shared_ptr<Connection>& conn) {
 	int newsgroup_id = read_num_p(conn);
-    std::vector<Article> list = ngp.list_articles(newsgroup_id);  // Assume that newsgroup_id exist in ngp. Need fix.
-	conn->write(Protocol::ANS_LIST_ART);
+    
+    conn->write(Protocol::ANS_LIST_ART);
+    
+    try {
+        std::vector<Article> list = ngp.list_articles(newsgroup_id);  // Assume that newsgroup_id exist in ngp. Need fix.
 
-	// Case newsgroup exist
-	conn->write(Protocol::ANS_ACK);
-	write_num_p(conn, list.size());
+	    // Case newsgroup exist
+	    conn->write(Protocol::ANS_ACK);
+	    write_num_p(conn, list.size());
 
-	for (auto a : list) {
-		write_num_p(conn, a.get_id());
-		write_string_p(conn, a.get_title());
-	}
+        for (auto a : list) {
+            write_num_p(conn, a.get_id());
+            write_string_p(conn, a.get_title());
+        }
 
-	conn->write(Protocol::ANS_END);
+        conn->write(Protocol::ANS_END);
+
+    } catch (MissingNewsgroupException&) {
+        // Case newsgroup does not exist
+        conn->write(Protocol::ANS_NAK);
+        conn->write(Protocol::ERR_NG_DOES_NOT_EXIST);
+        conn->write(Protocol::ANS_END);
+    }
 }
 
 bool NewsServer::create_art(const std::shared_ptr<Connection>& conn) {
@@ -191,13 +203,24 @@ bool NewsServer::delete_art(const std::shared_ptr<Connection>& conn) {
 void NewsServer::ans_get_art(const std::shared_ptr<Connection>& conn) {
     conn->write(Protocol::ANS_GET_ART);
     
-    Article a = ngp.article(read_num_p(conn), read_num_p(conn));
+    try {
+        Article a = ngp.article(read_num_p(conn), read_num_p(conn));
 
-    // Case article exist
-    conn->write(Protocol::ANS_ACK);
-    write_string_p(conn, a.get_title());
-    write_string_p(conn, a.get_author());
-    write_string_p(conn, a.get_text());
+        // Case article exist
+        conn->write(Protocol::ANS_ACK);
+        write_string_p(conn, a.get_title());
+        write_string_p(conn, a.get_author());
+        write_string_p(conn, a.get_text());
 
-    conn->write(Protocol::ANS_END);
+        conn->write(Protocol::ANS_END);
+
+    } catch (MissingArticleException&) {
+        conn->write(Protocol::ANS_NAK);
+        conn->write(Protocol::ERR_ART_DOES_NOT_EXIST);
+        conn->write(Protocol::ANS_END);
+    } catch (MissingNewsgroupException&) {
+        conn->write(Protocol::ANS_NAK);
+        conn->write(Protocol::ERR_NG_DOES_NOT_EXIST);
+        conn->write(Protocol::ANS_END);
+    }
 }

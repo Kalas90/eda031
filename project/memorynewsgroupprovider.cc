@@ -1,7 +1,9 @@
 #include "memorynewsgroupprovider.h"
 #include "newsgroup.h"
 #include "article.h"
-#include "nosuchelementexception.h"
+#include "missingnewsgroupexception.h"
+#include "missingarticleexception.h"
+
 
 #include <string>
 #include <vector>
@@ -15,7 +17,7 @@ Newsgroup& mngp::newsgroup(unsigned int newsgroup_id) {
             [&newsgroup_id](Newsgroup& g) {return g.get_id() == newsgroup_id;}
             );
     if (it == news.end())
-        throw NoSuchElementException();  // Fix better exception
+        throw MissingNewsgroupException();
     else
         return *it;
 }
@@ -26,7 +28,7 @@ Article mngp::article(unsigned int newsgroup_id, unsigned int article_id) const 
             );
 
     if (it == news.end())
-        throw NoSuchElementException();
+        throw MissingArticleException();
     
     return (*it).get_article(article_id); // Not yet implemented
 }

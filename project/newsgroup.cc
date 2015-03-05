@@ -1,5 +1,5 @@
 #include "newsgroup.h"
-#include "nosuchelementexception.h"
+#include "missingarticleexception.h"
 #include "article.h"
 #include <string>
 #include <vector>
@@ -25,7 +25,7 @@ Article Newsgroup::get_article(unsigned int id) const {
     if (it != articles.end()) {
         return *it;
     } else {
-        throw NoSuchElementException(); //invalid_argument("Article ID does not exist!");
+        throw MissingArticleException(); //invalid_argument("Article ID does not exist!");
     }
 }
 
