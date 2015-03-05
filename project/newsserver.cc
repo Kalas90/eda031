@@ -11,7 +11,7 @@
 
 #include <memory>
 
-NewsServer::NewsServer(int p, NewsgroupProvider& n) : port(p), ngp(n), server(p) {
+NewsServer::NewsServer(int p, NewsgroupProvider& n, bool v) : port(p), ngp(n), server(p), verbose(v) {
 	if (!server.isReady()) {
 		std::cerr << "Server initialization error." << std::endl;
 		exit(1);
@@ -92,7 +92,8 @@ void NewsServer::listen() {
 		auto conn = server.waitForActivity();
 		if (conn != nullptr) {
 			try {
-				int nbr = read_number(conn);
+				int nbr = conn->read();
+                if (verbose) std::cout << "Recieved command: " << nbr << std::endl;
 				switch (nbr) {
 					case Protocol::COM_LIST_NG:
 						ans_list_ng(conn);
@@ -101,7 +102,7 @@ void NewsServer::listen() {
 						ans_success(create_ng(conn), conn);
 						break;
 					case Protocol::COM_DELETE_NG:
-						ans_success(delete_ng(conn), conn); // Continue here
+						ans_success(delete_ng(conn), conn);
 						break;
 					case Protocol::COM_LIST_ART:
 						ans_list_art(conn);
@@ -119,12 +120,23 @@ void NewsServer::listen() {
 						throw ProtocolViolationException(); 
 						break;
 				}
+                int com_end = conn->read();
+                if (com_end != Protocol::COM_END)
+                    throw ProtocolViolationException();
 			} catch (ConnectionClosedException&) {
 				server.deregisterConnection(conn);
 				std::cout << "Client closed connection" << std::endl;
 			} catch (ProtocolViolationException&) {
                 server.deregisterConnection(conn);
                 std::cout << "Client violated the protocol. Connection closed" << std::endl;
+            } catch (MissingNewsgroupException&) {
+                conn->write(Protocol::ANS_NAK);
+                conn->write(Protocol::ERR_NG_DOES_NOT_EXIST);
+                conn->write(Protocol::ANS_END);
+            } catch (MissingArticleException&) {
+                conn->write(Protocol::ANS_NAK);
+                conn->write(Protocol::ERR_ART_DOES_NOT_EXIST);
+                conn->write(Protocol::ANS_END);
             }
 		} else {
 			conn = std::make_shared<Connection>();
@@ -134,7 +146,7 @@ void NewsServer::listen() {
 	}
 }
 
-void NewsServer::ans_success(bool success, const std::shared_ptr<Connection>& conn) {
+void NewsServer::ans_success(bool success, const std::shared_ptr<Connection>& conn, char err) {
 	if (success) {
 		conn->write(Protocol::ANS_ACK);
 	} else {

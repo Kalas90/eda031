@@ -19,8 +19,8 @@ CXXFLAGS += -g
 
 LDLIBS = -lpthread -ldl
 
-#PROGS = libclientserver.a testdatabase test_memorynewsgroupprovider test_newsserver
-PROGS = libclientserver.a test_memorynewsgroupprovider test_newsserver 
+PROGS = libclientserver.a testdatabase test_memorynewsgroupprovider test_newsserver
+#PROGS = libclientserver.a test_memorynewsgroupprovider test_newsserver 
 
 all: $(PROGS)
 

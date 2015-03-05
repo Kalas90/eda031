@@ -5,10 +5,17 @@
 int main(int argc,char *argv[]) {
     // Usage: runserver <port>
 
-    if (argc != 2) {
-        std::cout << "Usage: ./runserver <port>" << std::endl;
+    if (argc < 2 || argc > 3) {
+        std::cout << "Usage: ./runserver <port> <verbose>" << std::endl;
+        std::cout << "    port: number" << std::endl;
+        std::cout << "    verbose: 0|1" << std::endl;
         exit(1);
-    }   
+    }
+
+    bool verbose = false;
+    if (argc == 3) {
+        verbose = argv[2]=="1";
+    }
 
     std::istringstream ss(argv[1]);
     int port;
@@ -18,7 +25,7 @@ int main(int argc,char *argv[]) {
     }
 
 	MemoryNewsgroupProvider mnsg;
-	NewsServer ns(port, mnsg);
+	NewsServer ns(port, mnsg, verbose);
     std::cout << "Server running on port " << port << std::endl;
     ns.listen();
 }

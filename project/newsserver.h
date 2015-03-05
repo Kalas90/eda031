@@ -10,12 +10,13 @@
 
 class NewsServer {
 public:
-	NewsServer(int port, NewsgroupProvider& n);
+	NewsServer(int port, NewsgroupProvider& n, bool verbose);
 	void listen();
 private:
 	int port;
 	NewsgroupProvider& ngp;
 	Server server;
+    bool verbose;
 
 	int read_number(const std::shared_ptr<Connection>& conn);
 	std::string read_string(const std::shared_ptr<Connection>& conn, int size);
