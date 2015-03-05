@@ -10,6 +10,7 @@ class Newsgroup {
 public:
 
     Newsgroup(std::string);
+    Newsgroup(std::string, unsigned);
 
     std::string get_name() const;
     unsigned int get_id() const;

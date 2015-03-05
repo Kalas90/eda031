@@ -24,7 +24,7 @@ PROGS = libclientserver.a test_memorynewsgroupprovider test_newsserver
 
 all: $(PROGS)
 
-testdatabase: testdatabase.o database.o
+testdatabase: testdatabase.o database.o newsgroup.o article.o
 
 # Create the library; ranlib is for Darwin (OS X) and maybe other systems.
 # Doesn't seem to do any damage on other systems.

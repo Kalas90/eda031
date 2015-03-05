@@ -21,31 +21,50 @@ int main()
     system("./mktestdb.sh");
 
     NewsgroupDatabase db("db.sqlite3");
-    vector<string> newsgroups;
 
-    cout << "-- select * from newsgroups" << endl;
+    ////
 
+    cout << endl << "-- select * from newsgroups" << endl;
+
+    vector<Newsgroup> newsgroups;
     TRY_PRINT_ERRORS(
-        newsgroups = db.list_newsgroups();
+        newsgroups = db.list_news_groups();
     );
 
-    for (string ng : newsgroups)
-        cout << ng << endl;
+    for (Newsgroup ng : newsgroups)
+        cout << ng.get_name() << endl;
 
-    cout << endl;
-    cout << "-- delete from newsgroups with owned articles" << endl;
+    ////
+
+    cout << endl << "-- select article names for first newsgroup" << endl;
+
+    vector<Article> article_names;
+    TRY_PRINT_ERRORS(
+        article_names = db.list_articles(1);
+    );
+
+    for (Article a : article_names)
+        cout << a.get_title() << endl;
+
+    ////
+
+    cout << endl << "-- delete from newsgroups with owned articles" << endl;
 
     TRY_PRINT_ERRORS(
        db.remove_newsgroup(1);
     )
     cout << "-- select remaining" << endl;
-    TRY_PRINT_ERRORS(
-        newsgroups = db.list_newsgroups();
-    );
-    for (string ng : newsgroups)
-        cout << ng << endl;
 
-    cout << "-- all done gg" << endl;
+    TRY_PRINT_ERRORS(
+        newsgroups = db.list_news_groups();
+    );
+
+    for (Newsgroup ng : newsgroups)
+        cout << ng.get_name() << endl;
+
+    ////
+
+    cout << endl << "-- all done gg" << endl;
 
     return 0;
 }

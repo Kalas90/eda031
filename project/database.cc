@@ -3,6 +3,7 @@
 using namespace std;
 
 static int read_newsgroups(void *vector_ptr, int argc, char **argv, char **col_name);
+static int read_article_list(void *vector_ptr, int argc, char **argv, char **col_name);
 
 NewsgroupDatabase::NewsgroupDatabase(string filename)
 {
@@ -16,13 +17,19 @@ NewsgroupDatabase::~NewsgroupDatabase()
     sqlite3_close(db);
 }
 
-vector<string> NewsgroupDatabase::list_newsgroups()
+Article NewsgroupDatabase::article(unsigned newsgroup_id, unsigned article_id) const
 {
-    const char *sql = "select name from newsgroups";
-    vector<string> newsgroups;
+    (void) newsgroup_id; (void) article_id;
+    throw DatabaseError(string("article: not implemented"));
+}
+
+vector<Newsgroup> NewsgroupDatabase::list_news_groups() const
+{
+    const char *sql = "select id, name from newsgroups";
+    vector<Newsgroup> newsgroup_list;
     char *error_msg = nullptr;
 
-    int rc = sqlite3_exec(db, sql, read_newsgroups, &newsgroups, &error_msg);
+    int rc = sqlite3_exec(db, sql, read_newsgroups, &newsgroup_list, &error_msg);
 
     if (rc != SQLITE_OK) {
         string error_str(error_msg);
@@ -30,18 +37,37 @@ vector<string> NewsgroupDatabase::list_newsgroups()
         throw DatabaseError(
                 string("query fails with excuse: ") + error_str);
     } else
-        return newsgroups;
+        return newsgroup_list;
 }
 
-bool NewsgroupDatabase::remove_newsgroup(int id)
+vector<Article> NewsgroupDatabase::list_articles(unsigned newsgroup_id)
+{
+    const string id_str = to_string(newsgroup_id);
+    const string sql =
+        string("select title, content from articles where newsgroup_id = ") + id_str;
+    vector <Article> article_list;
+    char *error_msg = nullptr;
+    int rc;
+
+    rc = sqlite3_exec(db, sql.c_str(), read_article_list, &article_list, &error_msg);
+    if (rc != SQLITE_OK) {
+        string error_str(error_msg);
+        sqlite3_free(error_msg);
+        throw DatabaseError(
+                string("query fails with excuse: ") + error_str);
+    } else
+        return article_list;
+}
+
+bool NewsgroupDatabase::remove_newsgroup(unsigned id)
 {
     const string id_str = to_string(id);
-    char *error_msg = nullptr;
-    bool status = true;
     const string delete_articles =
         string("delete from articles where newsgroup_id = ") + id_str;
     const string delete_newsgroups = 
         string("delete from newsgroups where id = ") + id_str;
+    bool status = true;
+    char *error_msg = nullptr;
     int rc;
 
     // begin transaction
@@ -77,11 +103,45 @@ fail:
             string("query fails with excuse: ") + error_str);
 }
 
+bool NewsgroupDatabase::remove_article(unsigned newsgroup_id, unsigned article_id)
+{
+    (void) newsgroup_id; (void) article_id;
+    throw DatabaseError(string("remove_article: Not implemented."));
+}
+
+bool NewsgroupDatabase::create_newsgroup(string name)
+{
+    (void) name;
+    throw DatabaseError(string("create_newsgroup: Not implemented."));
+}
+
+bool NewsgroupDatabase::create_article(unsigned newsgroup_id, string title, 
+                                       string author, string text)
+{
+    (void) newsgroup_id; (void) title; (void) author; (void) text;
+    throw DatabaseError(string("create_article: Not implemented."));
+}
+
 static int read_newsgroups(void *vector_ptr, int argc, char **argv, char **col_name)
 {
-    vector<string> *output_vector = static_cast<vector<string>*>(vector_ptr);
-
-    for (int i = 0; i < argc; i++)
-        output_vector->push_back(argv[i]);
+    (void) argc; (void) col_name;
+    vector<Newsgroup> *output_vector = static_cast<vector<Newsgroup>*>(vector_ptr);
+    unsigned id = stoi(string(argv[0]));
+    string name(argv[1]);
+    Newsgroup ng(name, id);
+    output_vector->push_back(ng);
     return 0;
 }
+
+static int read_article_list(void *vector_ptr, int argc, char **argv, char **col_name)
+{
+    (void) argc; (void) col_name;
+    vector<Article> *output_vector = static_cast<vector<Article>*>(vector_ptr);
+    string title(argv[0]);
+    string text(argv[1]);
+    // author, title, text
+    Article ng(string(""), title, text);
+    output_vector->push_back(ng);
+    return 0;
+}
+
