@@ -1,6 +1,9 @@
 #include "memorynewsgroupprovider.h"
 #include "newsgroup.h"
 #include "article.h"
+#include "missingnewsgroupexception.h"
+#include "missingarticleexception.h"
+
 
 #include <string>
 #include <vector>
@@ -14,7 +17,7 @@ Newsgroup& mngp::newsgroup(unsigned int newsgroup_id) {
             [&newsgroup_id](Newsgroup& g) {return g.get_id() == newsgroup_id;}
             );
     if (it == news.end())
-        throw std::invalid_argument("Newsgroup not found");
+        throw MissingNewsgroupException();
     else
         return *it;
 }
@@ -25,7 +28,7 @@ Article mngp::article(unsigned int newsgroup_id, unsigned int article_id) const 
             );
 
     if (it == news.end())
-        throw std::invalid_argument("Article not found");
+        throw MissingArticleException();
     
     return (*it).get_article(article_id); // Not yet implemented
 }
@@ -38,30 +41,34 @@ std::vector<Article> mngp::list_articles(unsigned int newsgroup_id) {
     return newsgroup(newsgroup_id).get_articles();
 }
 
-// TODO: Fix return value
 bool mngp::remove_article(unsigned int newsgroup_id, unsigned int article_id) {
-    newsgroup(newsgroup_id).delete_article(article_id);
-    return true;
+    return newsgroup(newsgroup_id).delete_article(article_id);
 }
 
-// TODO: Fix return value
 bool mngp::remove_newsgroup(unsigned int newsgroup_id) {
     auto it = std::remove_if(news.begin(), news.end(),
         [newsgroup_id](Newsgroup g) {return g.get_id() == newsgroup_id;}
         );
-    news.erase(it);
-    return true;
+    if (it != news.end()) {
+        news.erase(it);
+        return true;
+    } else {
+        return false;
+    }
 }
 
-// TODO: Fix newsgroup id not considered
 bool mngp::create_newsgroup(std::string name) {
-    news.push_back(Newsgroup(name));
-    return false;
+    auto it = std::find_if(news.begin(), news.end(),
+        [name](Newsgroup& g) { return g.get_name() == name; });
+    if (it == news.end()) {
+        news.push_back(Newsgroup(name));
+        return true;
+    } else
+        return false;
 }
 
 bool mngp::create_article(unsigned int newsgroup_id,
             std::string title, std::string author, std::string text) {
-    newsgroup(newsgroup_id).create_article(author, title, text);
-    return true;
+    return newsgroup(newsgroup_id).create_article(author, title, text);
 }
 

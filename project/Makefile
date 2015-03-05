@@ -19,7 +19,8 @@ CXXFLAGS += -g
 
 LDLIBS = -lpthread -ldl
 
-PROGS = libclientserver.a testdatabase test_memorynewsgroupprovider test_newsserver
+#PROGS = libclientserver.a testdatabase test_memorynewsgroupprovider test_newsserver
+PROGS = libclientserver.a test_memorynewsgroupprovider test_newsserver 
 
 all: $(PROGS)
 
@@ -34,7 +35,6 @@ sqlite3.o: sqlite3.c
 libclientserver.a: connection.o server.o
 	ar rv libclientserver.a  connection.o server.o
 	ranlib libclientserver.a
-#ntest: ntest.o article.o newsgroup.o
 test_memorynewsgroupprovider: test_memorynewsgroupprovider.o memorynewsgroupprovider.o article.o newsgroup.o
 test_newsserver: test_newsserver.o connection.o newsserver.o article.o newsgroup.o memorynewsgroupprovider.o server.o
 

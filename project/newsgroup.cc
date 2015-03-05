@@ -1,4 +1,5 @@
 #include "newsgroup.h"
+#include "missingarticleexception.h"
 #include "article.h"
 #include <string>
 #include <vector>
@@ -23,20 +24,12 @@ unsigned int Newsgroup::get_id() const { return id; }
 
 string Newsgroup::get_name() const {return name; }
 
-
-void Newsgroup::list_articles(ostream& out) const {
-    out << "Id| Author | Title" << endl;
-    for (auto a : articles) {
-        out << a.get_id() << " | " << a.get_author() << " | " << a.get_title() << endl;
-    }
-}
-
 Article Newsgroup::get_article(unsigned int id) const {
     auto it = find_if(articles.begin(), articles.end(), [&id](const Article& a){return a.get_id() == id;});
     if (it != articles.end()) {
         return *it;
     } else {
-        throw invalid_argument("Article ID does not exist!");
+        throw MissingArticleException(); //invalid_argument("Article ID does not exist!");
     }
 }
 
@@ -44,8 +37,15 @@ vector<Article> Newsgroup::get_articles() const {
     return articles;
 }
 
-void Newsgroup::create_article(string author, string title, string text) {
-    articles.push_back(Article(author, title, text));
+bool Newsgroup::create_article(string author, string title, string text) {
+    auto it = find_if(articles.begin(), articles.end(),
+            [title](Article& a){ return a.get_title() == title; } );
+    if (it != articles.end()) {
+        articles.push_back(Article(author, title, text));
+        return true;
+    } else {
+        return false;
+    }
 }
 
 bool Newsgroup::delete_article(unsigned int id) {
@@ -54,7 +54,6 @@ bool Newsgroup::delete_article(unsigned int id) {
         articles.erase(it);
         return true;
     } else {
-        throw invalid_argument("Article ID does not exist!");
         return false;
     }
 }
