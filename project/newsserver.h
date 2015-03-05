@@ -19,9 +19,14 @@ private:
 	int read_number(const std::shared_ptr<Connection>& conn);
 	void write_string(const std::shared_ptr<Connection>& conn, const std::string& s);
 	void write_number(const std::shared_ptr<Connection>& conn, int value);
-	void ans_list_ng(const std::shared_ptr<Connection>& conn);
 	bool create_ng(const std::shared_ptr<Connection>& conn);
-	void ans_create_ng(bool success, const std::shared_ptr<Connection>& conn);
+	bool delete_ng(const std::shared_ptr<Connection>& conn);
+	bool create_art(const std::shared_ptr<Connection>& conn);
+	bool delete_art(const std::shared_ptr<Connection>& conn);
+	void ans_list_ng(const std::shared_ptr<Connection>& conn);
+	void ans_list_art(const std::shared_ptr<Connection>& conn);
+	void ans_get_art(const std::shared_ptr<Connection>& conn);
+	void ans_success(bool success, const std::shared_ptr<Connection>& conn);
 };
 
 #endif

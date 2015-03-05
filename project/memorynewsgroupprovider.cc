@@ -40,8 +40,7 @@ std::vector<Article> mngp::list_articles(unsigned int newsgroup_id) {
 
 // TODO: Fix return value
 bool mngp::remove_article(unsigned int newsgroup_id, unsigned int article_id) {
-    newsgroup(newsgroup_id).delete_article(article_id);
-    return true;
+    return newsgroup(newsgroup_id).delete_article(article_id);
 }
 
 // TODO: Fix return value
@@ -49,8 +48,12 @@ bool mngp::remove_newsgroup(unsigned int newsgroup_id) {
     auto it = std::remove_if(news.begin(), news.end(),
         [newsgroup_id](Newsgroup g) {return g.get_id() == newsgroup_id;}
         );
-    news.erase(it);
-    return true;
+    if (it != news.end()) {
+        news.erase(it);
+        return true;
+    } else {
+        return false;
+    }
 }
 
 bool mngp::create_newsgroup(std::string name) {

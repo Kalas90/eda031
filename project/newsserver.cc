@@ -68,19 +68,25 @@ void NewsServer::listen() {
 						ans_list_ng(conn);
 						break;
 					case Protocol::COM_CREATE_NG:
-						ans_create_ng(create_ng(conn), conn);
+						ans_success(create_ng(conn), conn);
 						break;
 					case Protocol::COM_DELETE_NG:
+						ans_success(delete_ng(conn), conn); // Continue here
 						break;
 					case Protocol::COM_LIST_ART:
+						ans_list_art(conn);
 						break;
 					case Protocol::COM_CREATE_ART:
+						ans_success(create_art(conn), conn);
 						break;
 					case Protocol::COM_DELETE_ART:
+						ans_success(delete_art(conn), conn);
 						break;
 					case Protocol::COM_GET_ART:
+						ans_get_art(conn);
 						break;
-					case Protocol::COM_END:
+					case default:
+						throw ConnectionClosedException(); // Should we send something to client? Syntax error?
 						break;
 				}
 			} catch (ConnectionClosedException&) {
@@ -93,6 +99,16 @@ void NewsServer::listen() {
 			std::cout << "New client connects" << std::endl;
 		}
 	}
+}
+
+void NewsServer::ans_success(bool success, const std::shared_ptr<Connection>& conn) {
+	if (success) {
+		conn->write(Protocol::ANS_ACK);
+	} else {
+		conn->write(Protocol::ANS_NAK);
+		conn->write(Protocol::ERR_NG_ALREADY_EXISTS);
+	}
+	
 }
 
 void NewsServer::ans_list_ng(const std::shared_ptr<Connection>& conn) {
@@ -112,7 +128,6 @@ void NewsServer::ans_list_ng(const std::shared_ptr<Connection>& conn) {
 	conn->write(Protocol::ANS_END);
 }
 
-// TODO: What to do if par_string != Protocol::PAR_STRING
 bool NewsServer::create_ng(const std::shared_ptr<Connection>& conn) {
 	unsigned char par_string = conn->read();
 	if (par_string != Protocol::PAR_STRING)
@@ -124,12 +139,41 @@ bool NewsServer::create_ng(const std::shared_ptr<Connection>& conn) {
 	return (ngp.create_newsgroup(group_name));
 }
 
-void NewsServer::ans_create_ng(bool success, const std::shared_ptr<Connection>& conn) {
-	if (success) {
-		conn->write(Protocol::ANS_ACK);
-	} else {
-		conn->write(Protocol::ANS_NAK);
-		conn->write(Protocol::ERR_NG_ALREADY_EXISTS);
+bool NewsServer::delete_ng(const std::shared_ptr<Connection>& conn) {
+	return false;
+}
+
+void NewsServer::ans_list_art(const std::shared_ptr<Connection>& conn) {
+	// Read newsgroup number
+
+	// Fetch list
+
+	// Write to connection
+
+/*
+	conn->write(Protocol::ANS_LIST_NG);
+	conn->write(Protocol::PAR_NUM);
+	write_number(conn, list.size());
+
+	for (auto g : list) {
+		conn->write(Protocol::PAR_NUM);
+		write_number(conn, g.get_id());
+		conn->write(Protocol::PAR_STRING);
+		write_string(conn, g.get_name());
 	}
-	
+
+	conn->write(Protocol::ANS_END);
+	*/
+}
+
+bool NewsServer::create_art(const std::shared_ptr<Connection>& conn) {
+	return false;
+}
+
+bool NewsServer::delete_art(const std::shared_ptr<Connection>& conn) {
+	return false;
+}
+
+void NewsServer::ans_get_art(const std::shared_ptr<Connection>& conn) {
+
 }
