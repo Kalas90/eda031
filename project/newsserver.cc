@@ -37,6 +37,23 @@ std::string NewsServer::read_string(const std::shared_ptr<Connection>& conn, int
 	return s;
 }
 
+int NewsServer::read_num_p(const std::shared_ptr<Connection>& conn) {
+	unsigned char par_num = conn->read();
+	if (par_num != Protocol::PAR_NUM)
+		throw ConnectionClosedException();  // Need better exception
+
+	return read_number(conn);
+}
+
+std::string NewsServer::read_string_p(const std::shared_ptr<Connection>& conn) {
+	unsigned char par_string = conn->read();
+	if (par_string != Protocol::PAR_STRING)
+		throw ConnectionClosedException();	// Need better exception
+
+	int size = read_number(conn);
+	return read_string(conn, size);
+}
+
 /*
  * Send a string to a client.
  */
@@ -55,6 +72,16 @@ void NewsServer::write_number(const std::shared_ptr<Connection>& conn, int value
 	conn->write((value >> 16) & 0xFF);
 	conn->write((value >> 8)	 & 0xFF);
 	conn->write(value & 0xFF);
+}
+
+void NewsServer::write_string_p(const std::shared_ptr<Connection>& conn, const std::string& s) {
+	conn->write(Protocol::PAR_STRING);
+	write_string(conn, a.get_title());
+}
+
+void NewsServer::write_num_p(const std::shared_ptr<Connection>& conn, int value) {
+	conn->write(Protocol::PAR_NUM);
+	write_number(conn, value);
 }
 	
 void NewsServer::listen() {
@@ -141,46 +168,34 @@ bool NewsServer::create_ng(const std::shared_ptr<Connection>& conn) {
 }
 
 bool NewsServer::delete_ng(const std::shared_ptr<Connection>& conn) {
-	unsigned char par_num = conn->read();
-	if (par_num != Protocol::PAR_NUM)
-		throw ConnectionClosedException();
-
-	int newsgroup_id = read_number(conn);
-
-	return ngp.remove_newsgroup(newsgroup_id);
+	return ngp.remove_newsgroup(read_num_p(conn));
 }
 
 void NewsServer::ans_list_art(const std::shared_ptr<Connection>& conn) {
-	unsigned char par_num = conn->read();
-	if (par_num != Protocol::PAR_NUM)
-		throw ConnectionClosedException();
-
-	int newsgroup_id = read_number(conn);
+	int newsgroup_id = read_num_p(conn);
 	vector<Article> list = ngp.list_articles(newsgroup_id);  // Assume that newsgroup_id exist in ngp. Need fix.
 
 	conn->write(Protocol::ANS_LIST_ART);
 
 	// Case newsgroup exist
 	conn->write(Protocol::ANS_ACK);
-	conn->write(Protocol::PAR_NUM);
-	write_number(conn, list.size());
+	write_num_p(conn, list.size());
 
 	for (auto a : list) {
-		conn->write(Protocol::PAR_NUM);
-		write_number(conn, a.get_id());
-		conn->write(Protocol::PAR_STRING);
-		write_string(conn, a.get_title());
+		write_num_p(conn, a.get_id());
+		write_string_p(conn, a.get_title());
 	}
 
 	conn->write(Protocol::ANS_END);
 }
 
 bool NewsServer::create_art(const std::shared_ptr<Connection>& conn) {
-	return false;
+	int newsgroup_id = read_num_p(conn);
+	return ngp.create_article(read_num_p(conn), read_string_p(conn), read_string_p(conn), read_string_p(conn));
 }
 
 bool NewsServer::delete_art(const std::shared_ptr<Connection>& conn) {
-	return false;
+	return ngp.remove_article(read_num_p(conn), read_num_p(conn));
 }
 
 void NewsServer::ans_get_art(const std::shared_ptr<Connection>& conn) {
