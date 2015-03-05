@@ -4,6 +4,7 @@ using namespace std;
 
 static int read_newsgroups(void *vector_ptr, int argc, char **argv, char **col_name);
 static int read_article_list(void *vector_ptr, int argc, char **argv, char **col_name);
+static int read_article(void *article_ptr, int argc, char **argv, char **col_name);
 
 NewsgroupDatabase::NewsgroupDatabase(string filename)
 {
@@ -19,8 +20,23 @@ NewsgroupDatabase::~NewsgroupDatabase()
 
 Article NewsgroupDatabase::article(unsigned newsgroup_id, unsigned article_id) const
 {
-    (void) newsgroup_id; (void) article_id;
-    throw DatabaseError(string("article: not implemented"));
+    const string newsgroup_id_str = to_string(newsgroup_id);
+    const string article_id_str = to_string(article_id);
+    const string sql = 
+        "select id, title, author, content from articles where newsgroup_id = " +
+        newsgroup_id_str + " and id = " + article_id_str + " limit 1";
+    Article out_article("", "", "");
+    char *error_msg = nullptr;
+
+    int rc = sqlite3_exec(db, sql.c_str(), read_article, &out_article, &error_msg);
+
+    if (rc != SQLITE_OK) {
+        string  error_str(error_msg);
+        sqlite3_free(error_msg);
+        throw DatabaseError(
+                string("query fails with excuse: ") + error_str);
+    } else
+        return out_article;
 }
 
 vector<Newsgroup> NewsgroupDatabase::list_news_groups() const
@@ -44,7 +60,8 @@ vector<Article> NewsgroupDatabase::list_articles(unsigned newsgroup_id)
 {
     const string id_str = to_string(newsgroup_id);
     const string sql =
-        string("select title, content from articles where newsgroup_id = ") + id_str;
+        string("select id, title, author, content from articles where newsgroup_id = ") 
+        + id_str;
     vector <Article> article_list;
     char *error_msg = nullptr;
     int rc;
@@ -55,7 +72,7 @@ vector<Article> NewsgroupDatabase::list_articles(unsigned newsgroup_id)
         sqlite3_free(error_msg);
         throw DatabaseError(
                 string("query fails with excuse: ") + error_str);
-    } else
+    } else 
         return article_list;
 }
 
@@ -137,11 +154,26 @@ static int read_article_list(void *vector_ptr, int argc, char **argv, char **col
 {
     (void) argc; (void) col_name;
     vector<Article> *output_vector = static_cast<vector<Article>*>(vector_ptr);
-    string title(argv[0]);
-    string text(argv[1]);
-    // author, title, text
-    Article ng(string(""), title, text);
-    output_vector->push_back(ng);
+    // id is 0
+    string title(argv[1]);
+    string author(argv[2]);
+    string content(argv[3]);
+    // author, title, content
+    Article article(author, title, content);
+    output_vector->push_back(article);
+    return 0;
+}
+
+static int read_article(void *article_ptr, int argc, char **argv, char **col_name)
+{
+    (void) argc; (void) col_name;
+    Article *article = static_cast<Article*>(article_ptr);
+    // id is 0
+    string title(argv[1]);
+    string author(argv[2]);
+    string content(argv[3]);
+    // author, title, content
+    *article = Article(author, title, content);
     return 0;
 }
 

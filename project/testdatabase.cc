@@ -48,6 +48,17 @@ int main()
 
     ////
 
+    cout << endl << "-- select single article" << endl;
+
+    Article article("","","");
+    TRY_PRINT_ERRORS(
+        article = db.article(1, 1);
+    );
+
+    cout << article.get_author() << endl;
+
+    ////
+
     cout << endl << "-- delete from newsgroups with owned articles" << endl;
 
     TRY_PRINT_ERRORS(
