@@ -146,7 +146,7 @@ void NewsServer::listen() {
 	}
 }
 
-void NewsServer::ans_success(bool success, const std::shared_ptr<Connection>& conn, char err) {
+void NewsServer::ans_success(bool success, const std::shared_ptr<Connection>& conn) {
 	if (success) {
 		conn->write(Protocol::ANS_ACK);
 	} else {

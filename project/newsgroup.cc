@@ -25,7 +25,7 @@ unsigned int Newsgroup::get_id() const { return id; }
 string Newsgroup::get_name() const {return name; }
 
 Article Newsgroup::get_article(unsigned int id) const {
-    auto it = find_if(articles.begin(), articles.end(), [&id](const Article& a){return a.get_id() == id;});
+    auto it = find_if(articles.begin(), articles.end(), [id](const Article& a){return a.get_id() == id;});
     if (it != articles.end()) {
         return *it;
     } else {
@@ -40,7 +40,7 @@ vector<Article> Newsgroup::get_articles() const {
 bool Newsgroup::create_article(string author, string title, string text) {
     auto it = find_if(articles.begin(), articles.end(),
             [title](Article& a){ return a.get_title() == title; } );
-    if (it != articles.end()) {
+    if (it == articles.end()) {
         articles.push_back(Article(author, title, text));
         return true;
     } else {
