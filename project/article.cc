@@ -5,6 +5,8 @@ using namespace std;
 
 unsigned int Article::count;
 
+Article::Article() {}
+
 Article::Article(string author, string title, string text) : author(author), title(title), text(text) {
     id = ++count;
 }

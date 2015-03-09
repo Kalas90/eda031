@@ -5,7 +5,7 @@
 
 class Article {
 public:
-
+    Article();
     Article(std::string, std::string, std::string);
 
     std::string get_author() const;
