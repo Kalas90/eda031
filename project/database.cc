@@ -2,11 +2,10 @@
 
 using namespace std;
 
-static int read_newsgroup_list(vector<Newsgroup>*vector_ptr, int argc, char **argv, 
-        char **col_name);
-static int read_article_list(vector<Article> *vector_ptr, int argc, char **argv, 
-        char **col_name);
-static int read_article(Article *article_ptr, int argc, char **argv, char **col_name);
+static int read_newsgroup_list(vector<Newsgroup>*, int, char**, char**);
+static int read_article_list(vector<Article>*, int, char**, char**);
+static int read_article(Article*, int, char**, char**);
+static int read_unsigned_maybe(unsigned*, int, char**, char**);
 
 // Instantiate templates that we need.
 
@@ -88,15 +87,46 @@ bool NewsgroupDatabase::remove_article(unsigned newsgroup_id, unsigned article_i
 
 bool NewsgroupDatabase::create_newsgroup(string name)
 {
-    (void) name;
-    throw DatabaseError(string("create_newsgroup: Not implemented."));
+    const string select_last_id = 
+        string("select max(id) from newsgroups");
+    unsigned id = 0;
+
+    perform_query(select_last_id, read_unsigned_maybe, &id);
+
+    id++;
+
+    const string id_str = to_string(id);
+    const string insert_newsgroup =
+        string("insert into newsgroups (id, name) values ('")
+        + id_str + string("', '") + name + string("')"); 
+
+    perform_query(insert_newsgroup);
+    return true;
 }
 
 bool NewsgroupDatabase::create_article(unsigned newsgroup_id, string title, 
                                        string author, string text)
 {
-    (void) newsgroup_id; (void) title; (void) author; (void) text;
-    throw DatabaseError(string("create_article: Not implemented."));
+    const string select_last_id = 
+        string("select max(id) from articles");
+    unsigned article_id = 0;
+
+    perform_query(select_last_id, read_unsigned_maybe, &article_id);
+
+    article_id++;
+
+    const string article_id_str = to_string(article_id);
+    const string newsgroup_id_str = to_string(newsgroup_id);
+    const string insert_article =
+        string("insert into articles (id, newsgroup_id, title, author, content) values ('")
+        + article_id_str + string("', '") 
+        + newsgroup_id_str + string("', '") 
+        + title + string("', '") 
+        + author + string("', '") 
+        + text + string("')");
+
+    perform_query(insert_article);
+    return true;
 }
 
 void NewsgroupDatabase::begin_transaction()
@@ -147,6 +177,16 @@ static int read_article(Article *article_ptr, int argc, char **argv, char **col_
     string author(argv[2]);
     string content(argv[3]);
     *article_ptr = Article(author, title, content);
+    return 0;
+}
+
+static int read_unsigned_maybe(unsigned *uns_ptr, int argc, char **argv, char **col_name)
+{
+    // select [some integer] limit 1
+    (void) argc; (void) col_name;
+    if (!argv[0])
+        return 0;
+    *uns_ptr = stoi(string(argv[0]));
     return 0;
 }
 
