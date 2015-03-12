@@ -4,7 +4,9 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <utility>
 #include "article.h"
+#include "executionresult.h"
 
 class Newsgroup {
 public:
@@ -15,10 +17,10 @@ public:
     std::string get_name() const;
     unsigned int get_id() const;
 
-    Article get_article(unsigned int) const;
+    std::Pair<ExRes, Article> get_article(unsigned int) const;
     std::vector<Article> get_articles() const;
-    bool create_article(std::string, std::string, std::string);
-    bool delete_article(unsigned int);
+    ExRes create_article(std::string, std::string, std::string);
+    ExRes delete_article(unsigned int);
 
 
 private:

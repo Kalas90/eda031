@@ -6,6 +6,7 @@
 #include <iostream>
 #include <algorithm>
 #include <stdexcept>
+#include <utility>
 
 using namespace std;
 
@@ -24,36 +25,36 @@ unsigned int Newsgroup::get_id() const { return id; }
 
 string Newsgroup::get_name() const {return name; }
 
-Article Newsgroup::get_article(unsigned int id) const {
+std::Pair<ExRes, Article> Newsgroup::get_article(unsigned int id) const {
     auto it = find_if(articles.begin(), articles.end(), [&id](const Article& a){return a.get_id() == id;});
     if (it != articles.end()) {
-        return *it;
+        return std::make_pair(ExRes::SUCCESS, *it);
     } else {
-        throw MissingArticleException(); //invalid_argument("Article ID does not exist!");
+        return std::make_pair(ExRes::MISSING_ARTICLE, *it);
     }
 }
 
-vector<Article> Newsgroup::get_articles() const {
+std::vector<Article> Newsgroup::get_articles() const {
     return articles;
 }
 
-bool Newsgroup::create_article(string author, string title, string text) {
+ExRes Newsgroup::create_article(string author, string title, string text) {
     auto it = find_if(articles.begin(), articles.end(),
             [title](Article& a){ return a.get_title() == title; } );
-    if (it != articles.end()) {
+    if (it == articles.end()) {
         articles.push_back(Article(author, title, text));
-        return true;
+        return ExRes::SUCCESS;
     } else {
-        return false;
+        return ExRes::ARTICLE_ALREADY_EXIST;
     }
 }
 
-bool Newsgroup::delete_article(unsigned int id) {
+ExRes Newsgroup::delete_article(unsigned int id) {
     auto it = find_if(articles.begin(), articles.end(), [&id](const Article& a){return a.get_id() == id;});
     if (it != articles.end()) {
         articles.erase(it);
-        return true;
+        return ExRes::SUCCESS;
     } else {
-        return false;
+        return ExRes::MISSING_ARTICLE;
     }
 }

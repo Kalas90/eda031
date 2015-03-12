@@ -14,8 +14,8 @@ using mngp = MemoryNewsgroupProvider;
 
 Newsgroup& mngp::newsgroup(unsigned int newsgroup_id) {
     auto it = std::find_if(news.begin(), news.end(),
-            [&newsgroup_id](Newsgroup& g) {return g.get_id() == newsgroup_id;}
-            );
+        [&newsgroup_id](Newsgroup& g) {return g.get_id() == newsgroup_id;}
+        );
     if (it == news.end())
         throw MissingNewsgroupException();
     else
@@ -24,8 +24,8 @@ Newsgroup& mngp::newsgroup(unsigned int newsgroup_id) {
 
 Article mngp::article(unsigned int newsgroup_id, unsigned int article_id) const {
     auto it = std::find_if(news.begin(), news.end(),
-            [newsgroup_id](Newsgroup g) {return g.get_id() == newsgroup_id;}
-            );
+        [newsgroup_id](Newsgroup g) {return g.get_id() == newsgroup_id;}
+        );
 
     if (it == news.end())
         throw MissingArticleException();
@@ -64,11 +64,11 @@ bool mngp::create_newsgroup(std::string name) {
         news.push_back(Newsgroup(name));
         return true;
     } else
-        return false;
+    return false;
 }
 
 bool mngp::create_article(unsigned int newsgroup_id,
-            std::string title, std::string author, std::string text) {
+    std::string title, std::string author, std::string text) {
     return newsgroup(newsgroup_id).create_article(author, title, text);
 }
 

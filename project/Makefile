@@ -25,6 +25,9 @@ PROGS = libclientserver.a testdatabase test_memorynewsgroupprovider test_newsser
 all: $(PROGS)
 
 testdatabase: testdatabase.o database.o newsgroup.o article.o sqlite3.o
+test_memorynewsgroupprovider: test_memorynewsgroupprovider.o memorynewsgroupprovider.o article.o newsgroup.o
+test_newsserver: test_newsserver.o connection.o newsserver.o article.o newsgroup.o memorynewsgroupprovider.o server.o
+test_newsgroup: test_newsgroup.o newsgroup.o article.o 
 
 sqlite3.o: sqlite3.c
 	gcc -O2 -c sqlite3.c
@@ -35,8 +38,7 @@ sqlite3.o: sqlite3.c
 libclientserver.a: connection.o server.o
 	ar rv libclientserver.a  connection.o server.o
 	ranlib libclientserver.a
-test_memorynewsgroupprovider: test_memorynewsgroupprovider.o memorynewsgroupprovider.o article.o newsgroup.o
-test_newsserver: test_newsserver.o connection.o newsserver.o article.o newsgroup.o memorynewsgroupprovider.o server.o
+
 
 # Phony targets
 .PHONY: all clean
