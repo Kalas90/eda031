@@ -6,8 +6,6 @@
 #include "protocol.h"
 #include "connectionclosedexception.h"
 #include "protocolviolationexception.h"
-#include "missingnewsgroupexception.h"
-#include "missingarticleexception.h"
 
 #include <memory>
 
@@ -99,19 +97,19 @@ void NewsServer::listen() {
 						ans_list_ng(conn);
 						break;
 					case Protocol::COM_CREATE_NG:
-						ans_success(create_ng(conn), conn);
+						create_ng(conn);
 						break;
 					case Protocol::COM_DELETE_NG:
-						ans_success(delete_ng(conn), conn);
+						delete_ng(conn);
 						break;
 					case Protocol::COM_LIST_ART:
 						ans_list_art(conn);
 						break;
 					case Protocol::COM_CREATE_ART:
-						ans_success(create_art(conn), conn);
+						create_art(conn);
 						break;
 					case Protocol::COM_DELETE_ART:
-						ans_success(delete_art(conn), conn);
+						delete_art(conn);
 						break;
 					case Protocol::COM_GET_ART:
 						ans_get_art(conn);
@@ -137,8 +135,12 @@ void NewsServer::listen() {
                 conn->write(Protocol::ANS_NAK);
                 conn->write(Protocol::ERR_ART_DOES_NOT_EXIST);
                 conn->write(Protocol::ANS_END);
+            } catch (DuplicateNewsgroupException&) {
+                conn->write(Protocol::ANS_NAK);
+                conn->write(Protocol::ERR_NG_ALREADY_EXISTS);
+                conn->write(Protocol::ANS_END);
             }
-		} else {
+        } else {
 			conn = std::make_shared<Connection>();
 			server.registerConnection(conn);
 			std::cout << "New client connects" << std::endl;
@@ -146,19 +148,16 @@ void NewsServer::listen() {
 	}
 }
 
-void NewsServer::ans_success(bool success, const std::shared_ptr<Connection>& conn) {
-	if (success) {
-		conn->write(Protocol::ANS_ACK);
-	} else {
-		conn->write(Protocol::ANS_NAK);
-		conn->write(Protocol::ERR_NG_ALREADY_EXISTS);
-	}
+void NewsServer::ans_success(const std::shared_ptr<Connection>& conn) {
+	conn->write(Protocol::ANS_ACK);
+    conn->write(Protocol::ANS_END);
 }
 
 void NewsServer::ans_list_ng(const std::shared_ptr<Connection>& conn) {
-	std::vector<Newsgroup> list = ngp.list_news_groups();
-
 	conn->write(Protocol::ANS_LIST_NG);
+	
+    std::vector<Newsgroup> list = ngp.list_news_groups();
+
     write_num_p(conn, list.size());
 
 	for (auto g : list) {
@@ -170,69 +169,58 @@ void NewsServer::ans_list_ng(const std::shared_ptr<Connection>& conn) {
 }
 
 bool NewsServer::create_ng(const std::shared_ptr<Connection>& conn) {
-	return (ngp.create_newsgroup(read_string_p(conn)));
+    conn->write(Protocol::ANS_CREATE_NG);
+	ngp.create_newsgroup(read_string_p(conn));
+    ans_success(conn);
 }
 
 bool NewsServer::delete_ng(const std::shared_ptr<Connection>& conn) {
-	return ngp.remove_newsgroup(read_num_p(conn));
+    conn->write(Protocol::ANS_DELETE_NG);
+	ngp.remove_newsgroup(read_num_p(conn));
+    ans_success(conn);
 }
 
 void NewsServer::ans_list_art(const std::shared_ptr<Connection>& conn) {
-	int newsgroup_id = read_num_p(conn);
-    
     conn->write(Protocol::ANS_LIST_ART);
+	
+    int newsgroup_id = read_num_p(conn);
     
-    try {
-        std::vector<Article> list = ngp.list_articles(newsgroup_id);  // Assume that newsgroup_id exist in ngp. Need fix.
+    std::vector<Article> list = ngp.list_articles(newsgroup_id);  // Assume that newsgroup_id exist in ngp. Need fix.
 
-	    // Case newsgroup exist
-	    conn->write(Protocol::ANS_ACK);
-	    write_num_p(conn, list.size());
+	// Case newsgroup exist
+	conn->write(Protocol::ANS_ACK);
+	write_num_p(conn, list.size());
 
-        for (auto a : list) {
-            write_num_p(conn, a.get_id());
-            write_string_p(conn, a.get_title());
-        }
-
-        conn->write(Protocol::ANS_END);
-
-    } catch (MissingNewsgroupException&) {
-        // Case newsgroup does not exist
-        conn->write(Protocol::ANS_NAK);
-        conn->write(Protocol::ERR_NG_DOES_NOT_EXIST);
-        conn->write(Protocol::ANS_END);
+    for (auto a : list) {
+        write_num_p(conn, a.get_id());
+        write_string_p(conn, a.get_title());
     }
+
+    conn->write(Protocol::ANS_END);
 }
 
 bool NewsServer::create_art(const std::shared_ptr<Connection>& conn) {
-	return ngp.create_article(read_num_p(conn), read_string_p(conn), read_string_p(conn), read_string_p(conn));
+    conn->write(Protocol::ANS_CREATE_ART);
+    ngp.create_article(read_num_p(conn), read_string_p(conn), read_string_p(conn), read_string_p(conn));
+    ans_success();
 }
 
 bool NewsServer::delete_art(const std::shared_ptr<Connection>& conn) {
-	return ngp.remove_article(read_num_p(conn), read_num_p(conn));
+    conn->write(Protocol::ANS_DELETE_ART);
+	ngp.remove_article(read_num_p(conn), read_num_p(conn));
+    ans_success();
 }
 
 void NewsServer::ans_get_art(const std::shared_ptr<Connection>& conn) {
     conn->write(Protocol::ANS_GET_ART);
     
-    try {
-        Article a = ngp.article(read_num_p(conn), read_num_p(conn));
+    Article a = ngp.article(read_num_p(conn), read_num_p(conn));
 
-        // Case article exist
-        conn->write(Protocol::ANS_ACK);
-        write_string_p(conn, a.get_title());
-        write_string_p(conn, a.get_author());
-        write_string_p(conn, a.get_text());
+    // Case article exist
+    conn->write(Protocol::ANS_ACK);
+    write_string_p(conn, a.get_title());
+    write_string_p(conn, a.get_author());
+    write_string_p(conn, a.get_text());
 
-        conn->write(Protocol::ANS_END);
-
-    } catch (MissingArticleException&) {
-        conn->write(Protocol::ANS_NAK);
-        conn->write(Protocol::ERR_ART_DOES_NOT_EXIST);
-        conn->write(Protocol::ANS_END);
-    } catch (MissingNewsgroupException&) {
-        conn->write(Protocol::ANS_NAK);
-        conn->write(Protocol::ERR_NG_DOES_NOT_EXIST);
-        conn->write(Protocol::ANS_END);
-    }
+    conn->write(Protocol::ANS_END);
 }
