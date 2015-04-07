@@ -217,7 +217,9 @@ void NewsServer::create_art(const std::shared_ptr<Connection>& conn) {
 void NewsServer::delete_art(const std::shared_ptr<Connection>& conn) {
     if (verbose) std::cout << "ans_delete_art" << std::endl;
     conn->write(Protocol::ANS_DELETE_ART);
-	ngp.remove_article(read_num_p(conn), read_num_p(conn));
+    int newsgroup_id = read_num_p(conn);
+    int article_id = read_num_p(conn);
+    ngp.remove_article(newsgroup_id, article_id);
     ans_success(conn);
 }
 
