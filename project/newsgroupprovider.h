@@ -23,21 +23,25 @@ public:
 
 class MissingArticleException : public std::runtime_error {
 public:
+    MissingArticleException() : std::runtime_error("") {}
     MissingArticleException(std::string message) : std::runtime_error(message) {}
 };
 
 class MissingNewsgroupException : public std::runtime_error {
 public:
+    MissingNewsgroupException() : std::runtime_error("") {}
     MissingNewsgroupException(std::string message) : std::runtime_error(message) {}
 };
 
 class DuplicateNewsgroupException : public std::runtime_error {
 public:
+    DuplicateNewsgroupException() : std::runtime_error("") {}
     DuplicateNewsgroupException(std::string message) : std::runtime_error(message) {}
 };
 
 class ImplementationException : public std::runtime_error {
 public:
+    ImplementationException() : std::runtime_error("") {}
     ImplementationException(std::string message) : std::runtime_error(message) {}
 };
 

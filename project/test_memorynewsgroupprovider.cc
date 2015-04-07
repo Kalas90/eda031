@@ -1,10 +1,12 @@
 #include "memorynewsgroupprovider.h"
+#include "newsgroupprovider.h"
 #include "newsgroup.h"
 #include "article.h"
 
 #include <string>
 #include <vector>
 #include <iostream>
+#include <cassert>
 
 using namespace std;
 
@@ -53,14 +55,67 @@ int main() {
 	mngp.create_article(1, "article3", "Linus", "Det var en tredje gång...");
 	mngp.create_article(1, "article4", "Johan", "Håll käften.");
 
+    // list_news_groups
 	print_mngp(mngp);
 
-	cout << "Remove article1 in group1" << endl << endl;
-	mngp.remove_article(1,1);
+    // remove_article non-existing article
+    try {
+        mngp.remove_article(1,100);
+        assert(false);
+    } catch (MissingArticleException&) {
+        assert(true);
+    } catch (...) {
+        assert(false);
+    }
 
-	print_mngp(mngp);
+    // remove_article non-existing newsgroup
+    try {
+        mngp.remove_article(100,1);
+        assert(false);
+    } catch (MissingNewsgroupException&) {
+        assert(true);
+    } catch (...) {
+        assert(false);
+    }
 
-	mngp.remove_newsgroup(2);
+    // remove_article
+    try {
+        mngp.remove_article(1,1);
+        assert(mngp.list_articles(1).size() == 3);
+    } catch (MissingNewsgroupException&) {
+        cout << "Missing newsgroup" << endl;
+        assert(false);
+    } catch (MissingArticleException&) {
+        cout << "Missing article" << endl;
+        assert(false);
+    }
+    
+    // remove_newsgroup non-existing newsgroup
+    try {
+        mngp.remove_newsgroup(100);
+        assert(false);
+    } catch (MissingNewsgroupException&) {
+        assert(true);
+    } catch (...) {
+        assert(false);
+    }
 
-	print_mngp(mngp);
+    // remove_newsgroup
+    try {
+        mngp.remove_newsgroup(2);
+        assert(mngp.list_news_groups().size() == 1);
+    } catch (MissingNewsgroupException&) {
+        cout << "Missing newsgroup" << endl;
+        assert(false);
+    }
+
+    // create_article in non-existing newsgroup
+    try {
+        mngp.create_article(100, "Title", "Author", "Content text...");
+        assert(false);
+    } catch (MissingNewsgroupException&) {
+        assert(true);
+    } catch (...) {
+        assert(false);
+    }
 }

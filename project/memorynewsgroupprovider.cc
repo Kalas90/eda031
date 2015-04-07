@@ -11,7 +11,7 @@ using mngp = MemoryNewsgroupProvider;
 
 Newsgroup& mngp::newsgroup(unsigned int newsgroup_id) {
     auto it = std::find_if(news.begin(), news.end(),
-            [&newsgroup_id](Newsgroup& g) {return g.get_id() == newsgroup_id;}
+            [newsgroup_id](Newsgroup& g) {return g.get_id() == newsgroup_id;}
             );
     if (it == news.end())
         throw MissingNewsgroupException(
@@ -23,17 +23,14 @@ Newsgroup& mngp::newsgroup(unsigned int newsgroup_id) {
 
 Article mngp::article(unsigned int newsgroup_id, unsigned int article_id) const {
     auto it = std::find_if(news.begin(), news.end(),
-            [newsgroup_id](Newsgroup g) {return g.get_id() == newsgroup_id;}
+            [newsgroup_id](const Newsgroup& g) {return g.get_id() == newsgroup_id;}
             );
-
     if (it == news.end())
-        throw MissingArticleException(
-                std::string("No article with article_id = ") + 
-                std::to_string(article_id) +
-                std::string(", newgroup_id = ") + 
+        throw MissingNewsgroupException(
+                std::string("No newsgroup with id = ") + 
                 std::to_string(newsgroup_id));
-    
-    return (*it).get_article(article_id); // Not yet implemented
+    else
+        return (*it).get_article(article_id);
 }
 
 std::vector<Newsgroup> mngp::list_news_groups() const {
@@ -56,7 +53,7 @@ bool mngp::remove_newsgroup(unsigned int newsgroup_id) {
         news.erase(it);
         return true;
     } else {
-        return false;
+        throw MissingNewsgroupException();
     }
 }
 
@@ -67,7 +64,7 @@ bool mngp::create_newsgroup(std::string name) {
         news.push_back(Newsgroup(name));
         return true;
     } else
-        return false;
+        throw DuplicateNewsgroupException();
 }
 
 bool mngp::create_article(unsigned int newsgroup_id,

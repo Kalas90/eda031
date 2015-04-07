@@ -16,7 +16,9 @@ int main(int argc,char *argv[]) {
     if (argc == 3) {
         verbose = std::string(argv[2]) == std::string("1");
     }
-
+    
+    std::cout << "verbose: " << verbose << std::endl;
+    
     std::istringstream ss(argv[1]);
     int port;
     if (!(ss >> port)) {

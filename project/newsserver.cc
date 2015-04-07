@@ -154,6 +154,7 @@ void NewsServer::ans_success(const std::shared_ptr<Connection>& conn) {
 }
 
 void NewsServer::ans_list_ng(const std::shared_ptr<Connection>& conn) {
+    if (verbose) std::cout << "ans_list_ng" << std::endl;
 	conn->write(Protocol::ANS_LIST_NG);
 	
     std::vector<Newsgroup> list = ngp.list_news_groups();
@@ -169,18 +170,21 @@ void NewsServer::ans_list_ng(const std::shared_ptr<Connection>& conn) {
 }
 
 void NewsServer::create_ng(const std::shared_ptr<Connection>& conn) {
+    if (verbose) std::cout << "ans_create_ng" << std::endl;
     conn->write(Protocol::ANS_CREATE_NG);
 	ngp.create_newsgroup(read_string_p(conn));
     ans_success(conn);
 }
 
 void NewsServer::delete_ng(const std::shared_ptr<Connection>& conn) {
+    if (verbose) std::cout << "ans_delete_ng" << std::endl;
     conn->write(Protocol::ANS_DELETE_NG);
 	ngp.remove_newsgroup(read_num_p(conn));
     ans_success(conn);
 }
 
 void NewsServer::ans_list_art(const std::shared_ptr<Connection>& conn) {
+    if (verbose) std::cout << "ans_list_art" << std::endl;
     conn->write(Protocol::ANS_LIST_ART);
 	
     int newsgroup_id = read_num_p(conn);
@@ -200,21 +204,31 @@ void NewsServer::ans_list_art(const std::shared_ptr<Connection>& conn) {
 }
 
 void NewsServer::create_art(const std::shared_ptr<Connection>& conn) {
+    if (verbose) std::cout << "ans_create_art" << std::endl;
     conn->write(Protocol::ANS_CREATE_ART);
-    ngp.create_article(read_num_p(conn), read_string_p(conn), read_string_p(conn), read_string_p(conn));
+    int newsgroup_id = read_num_p(conn);
+    std::string title = read_string_p(conn);
+    std::string author = read_string_p(conn);
+    std::string text = read_string_p(conn);
+    ngp.create_article(newsgroup_id, title, author, text);
     ans_success(conn);
 }
 
 void NewsServer::delete_art(const std::shared_ptr<Connection>& conn) {
+    if (verbose) std::cout << "ans_delete_art" << std::endl;
     conn->write(Protocol::ANS_DELETE_ART);
 	ngp.remove_article(read_num_p(conn), read_num_p(conn));
     ans_success(conn);
 }
 
 void NewsServer::ans_get_art(const std::shared_ptr<Connection>& conn) {
+    if (verbose) std::cout << "ans_get_art" << std::endl;
     conn->write(Protocol::ANS_GET_ART);
     
-    Article a = ngp.article(read_num_p(conn), read_num_p(conn));
+    int newsgroup_id = read_num_p(conn);
+    int article_id = read_num_p(conn);
+
+    Article a = ngp.article(newsgroup_id, article_id);
 
     // Case article exist
     conn->write(Protocol::ANS_ACK);
