@@ -1,9 +1,6 @@
 #include "memorynewsgroupprovider.h"
 #include "newsgroup.h"
 #include "article.h"
-#include "missingnewsgroupexception.h"
-#include "missingarticleexception.h"
-
 
 #include <string>
 #include <vector>
@@ -17,7 +14,9 @@ Newsgroup& mngp::newsgroup(unsigned int newsgroup_id) {
             [&newsgroup_id](Newsgroup& g) {return g.get_id() == newsgroup_id;}
             );
     if (it == news.end())
-        throw MissingNewsgroupException();
+        throw MissingNewsgroupException(
+                std::string("No newsgroup with id = ") + 
+                std::to_string(newsgroup_id));
     else
         return *it;
 }
@@ -28,7 +27,11 @@ Article mngp::article(unsigned int newsgroup_id, unsigned int article_id) const 
             );
 
     if (it == news.end())
-        throw MissingArticleException();
+        throw MissingArticleException(
+                std::string("No article with article_id = ") + 
+                std::to_string(article_id) +
+                std::string(", newgroup_id = ") + 
+                std::to_string(newsgroup_id));
     
     return (*it).get_article(article_id); // Not yet implemented
 }

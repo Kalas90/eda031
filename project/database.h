@@ -9,9 +9,9 @@
 #include "newsgroup.h"
 #include "article.h"
 
-class DatabaseError : public std::runtime_error {
+class DatabaseError : public ImplementationException {
 public:
-    DatabaseError(std::string message) : std::runtime_error(message) {}
+    DatabaseError(std::string message) : ImplementationException(message) {}
 };
 
 class NewsgroupDatabase : public NewsgroupProvider {
