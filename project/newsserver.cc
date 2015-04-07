@@ -168,13 +168,13 @@ void NewsServer::ans_list_ng(const std::shared_ptr<Connection>& conn) {
 	conn->write(Protocol::ANS_END);
 }
 
-bool NewsServer::create_ng(const std::shared_ptr<Connection>& conn) {
+void NewsServer::create_ng(const std::shared_ptr<Connection>& conn) {
     conn->write(Protocol::ANS_CREATE_NG);
 	ngp.create_newsgroup(read_string_p(conn));
     ans_success(conn);
 }
 
-bool NewsServer::delete_ng(const std::shared_ptr<Connection>& conn) {
+void NewsServer::delete_ng(const std::shared_ptr<Connection>& conn) {
     conn->write(Protocol::ANS_DELETE_NG);
 	ngp.remove_newsgroup(read_num_p(conn));
     ans_success(conn);
@@ -199,16 +199,16 @@ void NewsServer::ans_list_art(const std::shared_ptr<Connection>& conn) {
     conn->write(Protocol::ANS_END);
 }
 
-bool NewsServer::create_art(const std::shared_ptr<Connection>& conn) {
+void NewsServer::create_art(const std::shared_ptr<Connection>& conn) {
     conn->write(Protocol::ANS_CREATE_ART);
     ngp.create_article(read_num_p(conn), read_string_p(conn), read_string_p(conn), read_string_p(conn));
-    ans_success();
+    ans_success(conn);
 }
 
-bool NewsServer::delete_art(const std::shared_ptr<Connection>& conn) {
+void NewsServer::delete_art(const std::shared_ptr<Connection>& conn) {
     conn->write(Protocol::ANS_DELETE_ART);
 	ngp.remove_article(read_num_p(conn), read_num_p(conn));
-    ans_success();
+    ans_success(conn);
 }
 
 void NewsServer::ans_get_art(const std::shared_ptr<Connection>& conn) {
