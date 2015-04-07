@@ -6,9 +6,8 @@
 // deal with it
 #define TRY_PRINT_ERRORS(stmts) try { \
         stmts; \
-    } catch (DatabaseError e) { \
-        cerr << e.what() << endl; \
-        exit(1); \
+    } catch (exception &e) { \
+        cerr << "Error: " << e.what() << endl; \
     } \
 
 using namespace std;
@@ -75,8 +74,8 @@ int main()
             article = db.article(1, 1);
         );
 
-        // We need a better way to say "no such article".
-        
+        cout << "-- list remaining articles" << endl;
+
         vector<Article> articles;
 
         TRY_PRINT_ERRORS(
@@ -85,6 +84,16 @@ int main()
 
         cout << "there are now " + to_string(articles.size()) << 
             " articles left in the newsgroup" << endl;
+    }
+
+    {
+        cout << "-- try to list newsgroup that doesn't exist" << endl;
+
+        vector<Article> articles;
+
+        TRY_PRINT_ERRORS(
+            articles = db.list_articles(123);
+        );
     }
 
     {
@@ -123,6 +132,12 @@ int main()
 
         for (Newsgroup ng : newsgroups)
             cout << ng.get_name() << endl;
+
+        cout << endl << "-- try to create duplicate newsgroup" << endl;
+
+        TRY_PRINT_ERRORS(
+            db.create_newsgroup(string("alt.binaries"));
+        );
     }
 
     {

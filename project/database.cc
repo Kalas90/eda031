@@ -30,6 +30,10 @@ Article NewsgroupDatabase::article(unsigned newsgroup_id, unsigned article_id) c
         newsgroup_id_str + " and id = " + article_id_str + " limit 1";
     Article out_article;
     perform_query(sql, read_article, &out_article);
+    if (out_article.get_title() == string())
+        throw MissingArticleException(
+                string("No article with newsgroup_id = ") + to_string(newsgroup_id) +
+                string(", article_id = ") + to_string(article_id));
     return out_article;
 }
 
@@ -44,11 +48,21 @@ vector<Newsgroup> NewsgroupDatabase::list_news_groups() const
 vector<Article> NewsgroupDatabase::list_articles(unsigned newsgroup_id)
 {
     const string id_str = to_string(newsgroup_id);
-    const string sql =
+    const string count_sql = 
+        string("select 1 from newsgroups where id = ") + id_str;
+    const string select_sql =
         string("select id, title, author, content from articles where newsgroup_id = ") 
         + id_str;
+    unsigned exists = 0;
+
+    perform_query(count_sql, read_unsigned_maybe, &exists);
+    if (!exists)
+        throw MissingNewsgroupException(
+                string("No newsgroup with id = ") + id_str);
+
     vector <Article> article_list;
-    perform_query(sql, read_article_list, &article_list);
+    perform_query(select_sql, read_article_list, &article_list);
+
     return article_list;
 }
 
@@ -100,7 +114,16 @@ bool NewsgroupDatabase::create_newsgroup(string name)
         string("insert into newsgroups (id, name) values ('")
         + id_str + string("', '") + name + string("')"); 
 
-    perform_query(insert_newsgroup);
+    try {
+        perform_query(insert_newsgroup);
+    } catch (DatabaseError &e) {
+        if (string(e.what()).find("UNIQUE") != string::npos)
+            throw DuplicateNewsgroupException(
+                    string("Duplicate name for newsgroup '") +
+                    name + string("'"));
+        else
+            throw;
+    }
     return true;
 }
 
