@@ -14,7 +14,7 @@ int main(int argc,char *argv[]) {
 
     bool verbose = false;
     if (argc == 3) {
-        verbose = argv[2]=="1";
+        verbose = std::string(argv[2]) == std::string("1");
     }
 
     std::istringstream ss(argv[1]);

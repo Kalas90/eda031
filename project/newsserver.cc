@@ -6,8 +6,6 @@
 #include "protocol.h"
 #include "connectionclosedexception.h"
 #include "protocolviolationexception.h"
-#include "missingnewsgroupexception.h"
-#include "missingarticleexception.h"
 
 #include <memory>
 
