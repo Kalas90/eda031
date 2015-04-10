@@ -337,7 +337,6 @@ void NewsClient::send_list_articles(const int ng_id) const {
   conn.write(Protocol::COM_END);
 }
 
-
 void NewsClient::send_create_article(const int ng_id, const std::string& title, 
         const std::string& author, const std::string& text) const {
   conn.write(Protocol::COM_CREATE_ART);
