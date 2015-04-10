@@ -19,7 +19,7 @@ CXXFLAGS += -g
 
 LDLIBS = -lpthread -ldl
 
-PROGS = libclientserver.a testdatabase test_memorynewsgroupprovider test_newsserver test_newsgroup
+PROGS = libclientserver.a testdatabase test_memorynewsgroupprovider test_newsserver test_newsgroup client
 #PROGS = libclientserver.a test_memorynewsgroupprovider test_newsserver 
 
 all: $(PROGS)
@@ -31,7 +31,6 @@ sqlite3.o: sqlite3.c
 
 # Create the library; ranlib is for Darwin (OS X) and maybe other systems.
 # Doesn't seem to do any damage on other systems.
-
 libclientserver.a: connection.o server.o
 	ar rv libclientserver.a  connection.o server.o
 	ranlib libclientserver.a
@@ -39,12 +38,14 @@ test_memorynewsgroupprovider: test_memorynewsgroupprovider.o memorynewsgroupprov
 test_newsserver: test_newsserver.o connection.o newsserver.o article.o newsgroup.o memorynewsgroupprovider.o server.o
 test_newsgroup: test_newsgroup.o newsgroup.o article.o
 
+client: client.o newsclient.o connection.o
+
 # Phony targets
 .PHONY: all clean
 
 # Standard clean
 clean:
-	rm -f *.o libclientserver.a
+	rm -f *.o $(PROGS)
 
 # Generate dependencies in *.d files
 %.d: %.cc

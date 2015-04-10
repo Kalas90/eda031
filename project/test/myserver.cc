@@ -2,6 +2,7 @@
 #include "server.h"
 #include "connection.h"
 #include "connectionclosedexception.h"
+#include "protocol.h"
 
 #include <memory>
 #include <iostream>
@@ -56,16 +57,17 @@ int main(int argc, char* argv[]){
 		auto conn = server.waitForActivity();
 		if (conn != nullptr) {
 			try {
-				int nbr = readNumber(conn);
-				string result;
-				if (nbr > 0) {
-					result = "positive";
-				} else if (nbr == 0) {
-					result = "zero";
-				} else {
-					result = "negative";
-				}
-				writeString(conn, result);
+        string s;
+        unsigned char c;
+        while (c = conn->read()) {
+          if (c == Protocol::COM_END)
+            break;
+          else
+            s += c;
+        }
+
+        cout << s << endl;
+				//writeString(conn, result);
 			} catch (ConnectionClosedException&) {
 				server.deregisterConnection(conn);
 				cout << "Client closed connection" << endl;
