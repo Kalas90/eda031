@@ -15,6 +15,7 @@ class NewsClient {
     void receive();
     void print_response();
     bool wait_for_response() const;
+    bool should_exit() const;
 
   private:
     void send_list_newsgroups() const;
@@ -36,7 +37,6 @@ class NewsClient {
     
     void write_int(const int) const;
     void write_string(const std::string&) const;
-    void exit();
 
     char read_byte();
     int read_num_p();
@@ -45,6 +45,7 @@ class NewsClient {
     void reset_response_pointer();
 
     bool active = true;
+    bool wait_for_resp;
     std::ostream& os;
     const Connection& conn;
     int selected_newsgroup = -1;

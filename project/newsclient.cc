@@ -7,14 +7,14 @@
 #include <utility>
 
 void NewsClient::receive() {
+  // Reset old response
+  response = "";
+
+  // Recieve reponse from server
   char ch;
   while ((ch = conn.read()) != Protocol::ANS_END) {
     response += ch;
   }
-}
-
-void bad_resp() {
-  std::cout << "Bad response!" << std::endl;
 }
 
 void NewsClient::reset_response_pointer() {
@@ -54,7 +54,6 @@ std::string NewsClient::read_string_p() {
     throw MalformattedResponseException();
   }
 }
- 
 
 void NewsClient::print_response() {
   reset_response_pointer();
@@ -82,15 +81,22 @@ void NewsClient::print_response() {
       print_get_article();
       break;
     default:
-      bad_resp();
-      return;
+      throw MalformattedResponseException();
   }
 }
 
 void NewsClient::print_list_newsgroups() {
   int n_newsgroups = read_num_p();
-  for (int i = 0; i < n_newsgroups; ++i)
-    os << read_num_p() << ". " << read_string_p() << std::endl;
+  if (n_newsgroups == 0) {
+    os << "There are no newsgroups at the moment" << std::endl;
+    return;
+  }
+
+  for (int i = 0; i < n_newsgroups; ++i) {
+    int id = read_num_p();
+    std::string name = read_string_p();
+    os << id << ". " << name << std::endl;
+  }
 }
 
 void NewsClient::print_create_newsgroup() {
@@ -110,8 +116,16 @@ void NewsClient::print_delete_newsgroup() {
 void NewsClient::print_list_articles() {
   if (read_byte() == Protocol::ANS_ACK) {
     int n_articles = read_num_p();
-    for (int i = 0; i < n_articles; ++i)
-      os << read_num_p() << ". " << read_string_p() << std::endl;
+    if (n_articles == 0) {
+      os << "There are no articles in the selected newsgroup" << std::endl;
+      return;
+    }
+
+    for (int i = 0; i < n_articles; ++i) {
+      int id = read_num_p();
+      std::string name = read_string_p();
+      os << id << ". " << name << std::endl;
+    }
   } else {
     os << "The selected newsgroup does not exist." << std::endl;
   }
@@ -203,98 +217,94 @@ std::pair<std::string, size_t> read_word(const std::string s, size_t start) {
   }
 }
 
-void bad_req() {
-  std::cerr << "Malformatted request." << std::endl;
-}
-
 void NewsClient::parse_and_execute_command(const std::string& input) {
-  try {
-    if (input == "exit") { 
-      exit();
+  wait_for_resp = true;
 
-    } else if (selected_newsgroup < 0 && input.find("list newsgroups") == 0) {
-      send_list_newsgroups();
+  if (input == "exit") { 
+    active = false;
+    wait_for_resp = false;
 
-    } else if (selected_newsgroup < 0 && input.find("create newsgroup ") == 0) {
-      auto word = read_word(input, 17);
+  } else if (selected_newsgroup < 0 && input.find("list newsgroups") == 0) {
+    send_list_newsgroups();
 
-      if (word.first.size() < 1) 
-        throw MalformattedInputException();
-      else
-        send_create_newsgroup(word.first);
+  } else if (selected_newsgroup < 0 && input.find("create newsgroup ") == 0) {
+    auto word = read_word(input, 17);
 
-    } else if (selected_newsgroup < 0 && input.find("delete newsgroup ") == 0) {
-      auto word = read_word(input, 17);
+    if (word.first.size() < 1) 
+      throw MalformattedInputException();
+    else
+      send_create_newsgroup(word.first);
 
-      int ng_id;
-      try {
-        ng_id = std::stoi(word.first);
-      } catch(std::exception& e) {
-        throw MalformattedInputException();
-      }
-      
-      send_delete_newsgroup(ng_id);
-    
-    } else if (selected_newsgroup < 0 && input.find("select newsgroup ") == 0) {
-      auto word = read_word(input, 17);
+  } else if (selected_newsgroup < 0 && input.find("delete newsgroup ") == 0) {
+    auto word = read_word(input, 17);
 
-      try {
-        selected_newsgroup = std::stoi(word.first);
-      } catch(std::exception& e) {
-        throw MalformattedInputException();
-      }
-
-      os << "Selected newsgroup " << selected_newsgroup << "." << std::endl;
-      print_help();
-
-    } else if (selected_newsgroup > 0 && input.find("leave newsgroup") == 0) {
-      os << "Exited newsgroup " << selected_newsgroup << "." << std::endl;
-      selected_newsgroup = -1;
-      print_help();
-
-    } else if (selected_newsgroup > 0 && input.find("create article ") == 0) {
-      auto title = read_word(input, 15);
-      auto author = read_word(input, title.second);
-      auto text = read_word(input, author.second);
-     
-      if (title.first.size() < 1 || author.first.size() < 1 || text.first.size() < 1)
-        throw MalformattedInputException();
-
-      send_create_article(selected_newsgroup, title.first, author.first, text.first);
-
-    } else if (selected_newsgroup > 0 && input.find("delete article ") == 0) {
-      auto word = read_word(input, 15);
-
-      int art_id;
-      try {
-        art_id = std::stoi(word.first);
-      } catch(std::exception& e) {
-        throw MalformattedInputException();
-      }
-      
-      send_delete_article(selected_newsgroup, art_id);
-
-    } else if (selected_newsgroup > 0 && input.find("read article ") == 0) {
-      auto word = read_word(input, 13);
-
-      int art_id;
-      try {
-        art_id = std::stoi(word.first);
-      } catch(std::exception& e) {
-        throw MalformattedInputException();
-      }
-      
-      send_get_article(selected_newsgroup, art_id);
-
-    } else if (selected_newsgroup > 0 && input.find("list articles") == 0) {
-      send_list_articles(selected_newsgroup);
-
-    } else {
+    int ng_id;
+    try {
+      ng_id = std::stoi(word.first);
+    } catch(std::exception& e) {
       throw MalformattedInputException();
     }
-  } catch(MalformattedInputException e) {
-    bad_req();
-    return;
+    
+    send_delete_newsgroup(ng_id);
+  
+  } else if (selected_newsgroup < 0 && input.find("select newsgroup ") == 0) {
+    auto word = read_word(input, 17);
+
+    try {
+      selected_newsgroup = std::stoi(word.first);
+    } catch(std::exception& e) {
+      throw MalformattedInputException();
+    }
+
+    os << "Selected newsgroup " << selected_newsgroup << "." << std::endl;
+    print_help();
+    wait_for_resp = false;
+
+  } else if (selected_newsgroup > 0 && input.find("leave newsgroup") == 0) {
+    os << "Exited newsgroup " << selected_newsgroup << "." << std::endl;
+    selected_newsgroup = -1;
+    print_help();
+    wait_for_resp = false;
+
+  } else if (selected_newsgroup > 0 && input.find("create article ") == 0) {
+    auto title = read_word(input, 15);
+    auto author = read_word(input, title.second);
+    auto text = read_word(input, author.second);
+   
+    if (title.first.size() < 1 || author.first.size() < 1 || text.first.size() < 1)
+      throw MalformattedInputException();
+
+    send_create_article(selected_newsgroup, title.first, author.first, text.first);
+
+  } else if (selected_newsgroup > 0 && input.find("delete article ") == 0) {
+    auto word = read_word(input, 15);
+
+    int art_id;
+    try {
+      art_id = std::stoi(word.first);
+    } catch(std::exception& e) {
+      throw MalformattedInputException();
+    }
+    
+    send_delete_article(selected_newsgroup, art_id);
+
+  } else if (selected_newsgroup > 0 && input.find("read article ") == 0) {
+    auto word = read_word(input, 13);
+
+    int art_id;
+    try {
+      art_id = std::stoi(word.first);
+    } catch(std::exception& e) {
+      throw MalformattedInputException();
+    }
+    
+    send_get_article(selected_newsgroup, art_id);
+
+  } else if (selected_newsgroup > 0 && input.find("list articles") == 0) {
+    send_list_articles(selected_newsgroup);
+
+  } else {
+    throw MalformattedInputException();
   }
 }
 
@@ -370,13 +380,13 @@ void NewsClient::send_get_article(const int ng_id, const int art_id) const {
 }
 
 bool NewsClient::wait_for_response() const {
-  return active;
-}
- 
-void NewsClient::exit() {
-  active = false;
+  return wait_for_resp;
 }
 
+bool NewsClient::should_exit() const {
+  return !active;
+}
+ 
 void NewsClient::print_help() const {
   using namespace std;
   if (selected_newsgroup < 0) {

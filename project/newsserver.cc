@@ -91,7 +91,7 @@ void NewsServer::listen() {
 		if (conn != nullptr) {
 			try {
 				int nbr = conn->read();
-                if (verbose) std::cout << "Recieved command: " << nbr << std::endl;
+        if (verbose) std::cout << "Received command: " << nbr << std::endl;
 				switch (nbr) {
 					case Protocol::COM_LIST_NG:
 						ans_list_ng(conn);
