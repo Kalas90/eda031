@@ -17,7 +17,7 @@ CXXFLAGS += -g
 #CPPFLAGS =  -stdlib=libc++
 #CXXFLAGS += -stdlib=libc++
 
-LDLIBS = -lpthread -ldl -lsqlite3
+LDLIBS = -lpthread -ldl
 
 #PROGS = libclientserver.a testdatabase test_memorynewsgroupprovider test_newsserver test_newsgroup client databaseserver
 #PROGS = libclientserver.a test_memorynewsgroupprovider test_newsserver
@@ -38,7 +38,7 @@ libclientserver.a: connection.o server.o
 test_memorynewsgroupprovider: test_memorynewsgroupprovider.o memorynewsgroupprovider.o article.o newsgroup.o
 test_newsserver: test_newsserver.o connection.o newsserver.o article.o newsgroup.o memorynewsgroupprovider.o server.o
 memoryserver: memoryserver.o connection.o newsserver.o article.o newsgroup.o memorynewsgroupprovider.o server.o
-databaseserver: databaseserver.o connection.o newsserver.o article.o newsgroup.o database.o server.o
+databaseserver: databaseserver.o connection.o newsserver.o article.o newsgroup.o database.o server.o sqlite3.o
 test_newsgroup: test_newsgroup.o newsgroup.o article.o
 
 client: client.o newsclient.o connection.o
