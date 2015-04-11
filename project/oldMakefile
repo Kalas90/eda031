@@ -1,0 +1,62 @@
+
+# Makefile to make the file libclientserver.a, containing
+# connection.o and server.o
+#
+# Define the compiler. g++ can be
+# changed to clang++.
+CXX = g++
+CC  = g++
+
+# Define preprocessor, compiler, and linker flags. Uncomment the # lines
+# if you use clang++ and wish to use libc++ instead of libstdc++.
+CPPFLAGS =  -std=c++11
+CXXFLAGS =  -O2 -Wall -Wextra -pedantic-errors -Wold-style-cast
+CXXFLAGS += -std=c++11
+CXXFLAGS += -g
+#CXXFLAGS =  -stdlib=libc++
+#CPPFLAGS =  -stdlib=libc++
+#CXXFLAGS += -stdlib=libc++
+
+LDLIBS = -lpthread -ldl -lsqlite3
+
+#PROGS = libclientserver.a testdatabase test_memorynewsgroupprovider test_newsserver test_newsgroup client databaseserver
+#PROGS = libclientserver.a test_memorynewsgroupprovider test_newsserver
+PROGS = libclientserver.a client databaseserver memoryserver
+
+all: $(PROGS)
+
+testdatabase: testdatabase.o database.o newsgroup.o article.o sqlite3.o
+
+sqlite3.o: sqlite3.c
+	gcc -O2 -c sqlite3.c
+
+# Create the library; ranlib is for Darwin (OS X) and maybe other systems.
+# Doesn't seem to do any damage on other systems.
+libclientserver.a: connection.o server.o
+	ar rv libclientserver.a  connection.o server.o
+	ranlib libclientserver.a
+test_memorynewsgroupprovider: test_memorynewsgroupprovider.o memorynewsgroupprovider.o article.o newsgroup.o
+test_newsserver: test_newsserver.o connection.o newsserver.o article.o newsgroup.o memorynewsgroupprovider.o server.o
+memoryserver: memoryserver.o connection.o newsserver.o article.o newsgroup.o memorynewsgroupprovider.o server.o
+databaseserver: databaseserver.o connection.o newsserver.o article.o newsgroup.o database.o server.o
+test_newsgroup: test_newsgroup.o newsgroup.o article.o
+
+client: client.o newsclient.o connection.o
+
+# Phony targets
+.PHONY: all clean
+
+# Standard clean
+clean:
+	rm -f *.o $(PROGS)
+
+# Generate dependencies in *.d files
+%.d: %.cc
+	@set -e; rm -f $@; \
+         $(CPP) -MM $(CPPFLAGS) $< > $@.$$$$; \
+         sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
+         rm -f $@.$$$$
+
+# Include the *.d files
+SRC = $(wildcard *.cc)
+include $(SRC:.cc=.d)

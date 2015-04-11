@@ -30,3 +30,5 @@
 
 *.sublime-project
 *.sublime-workspace
+
+/exams

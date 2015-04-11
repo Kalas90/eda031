@@ -1,5 +1,5 @@
 #include "newsserver.h"
-#include "memorynewsgroupprovider.h"
+#include "database.h"
 #include <sstream>
 
 int main(int argc,char *argv[]) {
@@ -16,9 +16,9 @@ int main(int argc,char *argv[]) {
     if (argc == 3) {
         verbose = std::string(argv[2]) == std::string("1");
     }
-    
+
     std::cout << "verbose: " << verbose << std::endl;
-    
+
     std::istringstream ss(argv[1]);
     int port;
     if (!(ss >> port)) {
@@ -26,8 +26,8 @@ int main(int argc,char *argv[]) {
         exit(1);
     }
 
-	MemoryNewsgroupProvider mnsg;
-	NewsServer ns(port, mnsg, verbose);
+    NewsgroupDatabase ndb("db.sqlite3");
+    NewsServer ns(port, ndb, verbose);
     std::cout << "Server running on port " << port << std::endl;
     ns.listen();
 }
