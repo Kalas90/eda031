@@ -1,0 +1,55 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amssymb,amsmath}
+\usepackage{graphicx}
+\usepackage{sverb}
+\usepackage{float}
+\usepackage{verbatim}
+
+
+\title{EDA031 | News project}
+\author{Anton persson - atp10ape\\
+		Elias Brange - tpi11ebr\\
+		Johan Förberg - atf10jfo\\
+		Linus Hammarlund - atp10lha}
+\begin{document}
+\maketitle
+\newpage
+
+\section{System Design}
+
+\subsection{Data representation}
+Each article is represented by the \verb!Article! class, where each article has an author, title, text and an unique ID. Every article belongs to a newsgroup which are represented by the \verb!Newsgroup! class. Each newsgroup has an unique ID and a name, and all it's articles are represented in a vector.
+
+\subsection{Server}
+We have two different versions of the server, a in-memory one and a database one. The server receives messages from a connected client according to the protocol. If it receives a message not included in the protocol it throws a \verb!ProtocolViolationException!. If it receives an allowed message it tries to serve data to the client, and depending on the request the server either sends \verb!ANS_ACK! or \verb!ANS_NAK!. \verb!ANS_NAK! is sent when a client requests a newsgroup or article that does not exist, or when the client is trying to create a newsgroup with a name that already exists.
+
+The persistent database server is implemented using a SQLITE3 database to save the data, and the in-memory one uses the data representation described above. We have an interface called \verb!NewsgroupProvider! that represents creating, removing and listing of newsgroups and articles, which is used in the two versions of the server.
+
+Our server classes depends on the \verb!Server! class to handle sockets and low-level communication.
+
+\subsection{Client}
+
+\subsection{Classes}
+\begin{description}
+\item[Article] Represents an article with an ID, author, title and text.
+\item[Client] Generic client class, using methods from our \verb!NewsClient! class.
+\item[Connection] Represents a connection between a server and a client.
+\item[Database] Class implementing the \verb!NewsgroupProvider! interface for use with persistent data storage using SQLITE3.
+\item[MemoryNewsGroupProvider] Class implementing the \verb!NewsgroupProvider! interface for use with in-memory data storage.
+\item[NewsClient] Our class for sending and receiving messages to and from the server, and displaying the results in a text-based GUI. 
+\item[NewsGroup] Represents a newsgroup with an ID and a unique name. Every newsgroup has a vector of articles.
+\item[NewsGroupProvider] Interface containing methods for creating, removing and listing newsgroups and articles. Also has some custom exceptions such as \verb!MissingArticleException! and \verb!DuplicateNewsgroupException!.
+\item[NewsServer] Our server that listens for messages from the client. Uses the protocol defined in \verb!Protocol! to serve correct data to the client. Uses the \verb!Server! class to establish connections with clients.
+\item[Protocol] Class defining the protocol used by our system.
+\item[Server] Generic server class that registers connection with clients.
+\end{description}
+\subsection{Communication}
+
+\section{Conclusions}
+
+
+
+
+
+\end{document}
