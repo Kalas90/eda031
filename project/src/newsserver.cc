@@ -131,14 +131,17 @@ void NewsServer::listen() {
                 conn->write(Protocol::ANS_NAK);
                 conn->write(Protocol::ERR_NG_DOES_NOT_EXIST);
                 conn->write(Protocol::ANS_END);
+                conn->read();
             } catch (MissingArticleException&) {
                 conn->write(Protocol::ANS_NAK);
                 conn->write(Protocol::ERR_ART_DOES_NOT_EXIST);
                 conn->write(Protocol::ANS_END);
+                conn->read();
             } catch (DuplicateNewsgroupException&) {
                 conn->write(Protocol::ANS_NAK);
                 conn->write(Protocol::ERR_NG_ALREADY_EXISTS);
                 conn->write(Protocol::ANS_END);
+                conn->read();
             }
         } else {
 			conn = std::make_shared<Connection>();
