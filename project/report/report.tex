@@ -29,6 +29,11 @@ The persistent database server is implemented using a SQLITE3 database to save t
 Our server classes depends on the \verb!Server! class to handle sockets and low-level communication.
 
 \subsection{Client}
+The client is run using the \verb!Client! class, where all the logic is handled by the \verb!NewsClient! class. The client can basically have two states, one where the user is have selected a news group and one where he has not. Depending one which mode is entered the user can select a different number of commands.
+
+When a command is received it's parsed by a function which in turn delegates the request to the correct sender function. After that the client waits to the response.
+
+The response is saved into a string within the \verb!NewsClient! class by the \verb!receive()! function. Then it's parsed and printed by a separate function. This enables us to read the answer multiple times.
 
 \subsection{Classes}
 \begin{description}
