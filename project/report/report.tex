@@ -29,7 +29,7 @@ The persistent database server is implemented using a SQLITE3 database to save t
 Our server classes depends on the \verb!Server! class to handle sockets and low-level communication.
 
 \subsection{Client}
-The client is run using the \verb!Client! class, where all the logic is handled by the \verb!NewsClient! class. The client can basically have two states, one where the user is have selected a news group and one where he has not. Depending one which mode is entered the user can select a different number of commands.
+The client is run using the \verb!Client! class, where all the logic is handled by the \verb!NewsClient! class. The client can basically have two states, one where the user has selected a news group and one where the user has not. Depending one which mode is entered the user can select a different number of commands.
 
 When a command is received it's parsed by a function which in turn delegates the request to the correct sender function. After that the client waits to the response.
 
@@ -50,10 +50,17 @@ The response is saved into a string within the \verb!NewsClient! class by the \v
 \item[Server] Generic server class that registers connection with clients.
 \end{description}
 \subsection{Communication}
+The interaction between the server and a client is pretty straight-forward. The server listens for commands and when one is received it checks which type of command it received. If it received a faulty command it will throw and \verb!ProtocolViolationException!. If it receives a real command like \verb!COM_LIST_NG! it answers with \verb!ANS_LIST_NG! and it then fetches the newsgroups from the database and returns them to the client. If a request fails, like when asking for a newsgroup that does not exists, the server sends \verb!ANS_NAK! together with an error describing what went wrong.
+
+Both the server and client uses functions like \verb!write_string! and \verb!write_num! that sends strings and numbers over the connection according to the protocol.
+
 
 \section{Conclusions}
+One conclusion we have drawn is that using a real database as back-end in one of the servers was easy and smooth. That way we did not have to implement an own system using e.g. files and folders to save our data.
 
+Another thing we realised was that we should have spent more time planning in the beginning before we started coding. We had to rewrite a lot of the code on the server because we had not thought out all parts thoroughly. 
 
+The project was fun and rewarding and we feel like we have solved all problems given in the project description.
 
 
 
