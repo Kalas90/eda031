@@ -15,7 +15,7 @@ Newsgroup& mngp::newsgroup(unsigned int newsgroup_id) {
             );
     if (it == news.end())
         throw MissingNewsgroupException(
-                std::string("No newsgroup with id = ") + 
+                std::string("No newsgroup with id = ") +
                 std::to_string(newsgroup_id));
     else
         return *it;
@@ -27,7 +27,7 @@ Article mngp::article(unsigned int newsgroup_id, unsigned int article_id) const 
             );
     if (it == news.end())
         throw MissingNewsgroupException(
-                std::string("No newsgroup with id = ") + 
+                std::string("No newsgroup with id = ") +
                 std::to_string(newsgroup_id));
     else
         return (*it).get_article(article_id);
@@ -68,7 +68,7 @@ bool mngp::create_newsgroup(std::string name) {
 }
 
 bool mngp::create_article(unsigned int newsgroup_id,
-            std::string title, std::string author, std::string text) {
-    return newsgroup(newsgroup_id).create_article(author, title, text);
+            std::string title, std::string author, std::string text, int id) {
+    return newsgroup(newsgroup_id).create_article(author, title, text, id);
 }
 

@@ -17,7 +17,7 @@ public:
 
     Article get_article(unsigned int) const;
     std::vector<Article> get_articles() const;
-    bool create_article(std::string, std::string, std::string);
+    bool create_article(std::string, std::string, std::string, int);
     bool delete_article(unsigned int);
 
 

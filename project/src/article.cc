@@ -7,8 +7,13 @@ unsigned int Article::count;
 
 Article::Article() {}
 
-Article::Article(string author, string title, string text) : author(author), title(title), text(text) {
-    id = ++count;
+Article::Article(string author, string title, string text, int articleId) : author(author), title(title), text(text) {
+    if (articleId > -1) {
+        id = articleId;
+        ++count;
+    } else {
+        id = ++count;
+    }
 }
 
 string Article::get_author() const { return author; }

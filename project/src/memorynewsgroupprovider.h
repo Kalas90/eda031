@@ -14,7 +14,7 @@ public:
     virtual bool remove_newsgroup(unsigned int newsgroup_id) override;
     virtual bool create_newsgroup(std::string name) override;
     virtual bool create_article(unsigned int newsgroup_id,
-            std::string title, std::string author, std::string text) override;
+            std::string title, std::string author, std::string text, int article_id = -1) override;
 private:
     std::vector<Newsgroup> news;
     Newsgroup& newsgroup(unsigned int newsgroup_id);

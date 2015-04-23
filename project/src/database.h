@@ -1,4 +1,4 @@
-#ifndef DATABASE_H 
+#ifndef DATABASE_H
 #define DATABASE_H
 
 #include <stdexcept>
@@ -29,19 +29,19 @@ public:
     virtual bool remove_newsgroup(unsigned int newsgroup_id) override;
     virtual bool create_newsgroup(std::string name) override;
     virtual bool create_article(unsigned int newsgroup_id,
-            std::string title, std::string author, std::string text) override;
+            std::string title, std::string author, std::string text, int article_id = -1) override;
 protected:
     void begin_transaction();
     void commit_transaction();
     void rollback_transaction();
-    // By reading past this line, you confirm that you are 18+ and not 
+    // By reading past this line, you confirm that you are 18+ and not
     // easily offended by ugly code.
 
     template<typename t> unsigned perform_query(const std::string &query,
-            int (*func)(t*, int, char**, char**), t *data) const 
+            int (*func)(t*, int, char**, char**), t *data) const
     {
         char *error_msg = nullptr;
-        int (*unsafe_func)(void*, int, char**, char**) = 
+        int (*unsafe_func)(void*, int, char**, char**) =
                     reinterpret_cast<int (*)(void*, int, char**, char**)>(func);
         void *unsafe_data = static_cast<void*>(data);
 
@@ -63,4 +63,4 @@ protected:
     }
 };
 
-#endif // defined DATABASE_H 
+#endif // defined DATABASE_H

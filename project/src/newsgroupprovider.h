@@ -18,7 +18,7 @@ public:
     virtual bool remove_newsgroup(unsigned int newsgroup_id) = 0;
     virtual bool create_newsgroup(std::string name) = 0;
     virtual bool create_article(unsigned int newsgroup_id,
-            std::string title, std::string author, std::string text) = 0;
+            std::string title, std::string author, std::string text, int article_id = -1) = 0;
 };
 
 class MissingArticleException : public std::runtime_error {

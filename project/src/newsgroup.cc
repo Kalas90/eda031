@@ -37,8 +37,8 @@ vector<Article> Newsgroup::get_articles() const {
     return articles;
 }
 
-bool Newsgroup::create_article(string author, string title, string text) {
-    articles.push_back(Article(author, title, text));
+bool Newsgroup::create_article(string author, string title, string text, int id) {
+    articles.push_back(Article(author, title, text, id));
     return true;
 }
 
